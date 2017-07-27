@@ -25,11 +25,11 @@ USAGE       Usage is described by calling ./CHROMEISTER --help
 #define MIN(x, y) (((x) <= (y)) ? (x) : (y))
 #define STARTING_SEQS 1000
 #define PIECE_OF_DB_REALLOC 3200000 //half a gigabyte if divided by 8 bytes
-#define CHAIN_LEN 5
+#define RANGE 4
 
 uint64_t custom_kmer = 12; // Defined as external in structs.h
 
-void init_args(int argc, char ** av, FILE ** query, FILE ** database, FILE ** out_database, uint64_t * custom_kmer, uint64_t * dimension);
+void init_args(int argc, char ** av, FILE ** query, FILE ** database, FILE ** out_database, uint64_t * custom_kmer, uint64_t * dimension, unsigned char * filtering);
 
 int main(int argc, char ** av){
     
@@ -41,9 +41,10 @@ int main(int argc, char ** av){
     //query to read kmers from, database to find seeds
     FILE * query = NULL, * database = NULL, * out_database = NULL;
     uint64_t dimension = 1000; // Default 1000 * 1000
+    unsigned char filtering = 0; // Default is do not filter
     
     
-    init_args(argc, av, &query, &database, &out_database, &custom_kmer, &dimension);
+    init_args(argc, av, &query, &database, &out_database, &custom_kmer, &dimension, &filtering);
 
     unsigned char char_converter[91];
     char_converter[(unsigned char)'A'] = 0;
@@ -480,52 +481,60 @@ int main(int argc, char ** av){
     // }
 
     // Simple filtering
-
-    for(i=0; i<dimension+1; i++){
-        for(j=0; j<dimension+1; j++){
-            if(i > 2 && j > 2 && i < (dimension-2) && j < (dimension-2)){
-                // Non continuos diagonal
-                if(representation[i][j] == 1 && representation[i+1][j+1] == 0){                    
-                    representation[i][j] = 0;
-                }
-                // Colum repetitions
-                if(representation[i][j] == 1 && representation[i][j+1] == 1 && representation[i][j+2] == 1){
-                    representation[i][j] = 0;
-                    representation[i][j+1] = 0;
-                    representation[i][j+2] = 0;
-                }
-                // Row repetitions
-                if(representation[i][j] == 1 && representation[i+1][j] == 1 && representation[i+2][j] == 1){
-                    representation[i][j] = 0;
-                    representation[i+1][j] = 0;
-                    representation[i+2][j] = 0;
-                }
-            }
-        }
-    }
-    // Remove single points
-    for(i=0; i<dimension+1; i++){
-        for(j=0; j<dimension+1; j++){
-            if(i > 2 && j > 2 && i < (dimension-2) && j < (dimension-2)){
-                if(representation[i][j] == 1 && representation[i-1][j] == 0 && representation[i+1][j] == 0 && representation[i][j+1] == 0 && representation[i][j-1] == 0 && representation[i+1][j+1] == 0 && representation[i-1][j-1] == 0){
-                    representation[i][j] = 0;
+    if(filtering == 1){
+        for(i=0; i<dimension+1; i++){
+            for(j=0; j<dimension+1; j++){
+                if(i > 2 && j > 2 && i < (dimension-2) && j < (dimension-2)){
+                    // Non continuos diagonal
+                    if(representation[i][j] == 1 && representation[i+1][j+1] == 0){                    
+                        representation[i][j] = 0;
+                    }
+                    // Colum repetitions
+                    if(representation[i][j] == 1 && representation[i][j+1] == 1 && representation[i][j+2] == 1){
+                        representation[i][j] = 0;
+                        representation[i][j+1] = 0;
+                        representation[i][j+2] = 0;
+                    }
+                    // Row repetitions
+                    if(representation[i][j] == 1 && representation[i+1][j] == 1 && representation[i+2][j] == 1){
+                        representation[i][j] = 0;
+                        representation[i+1][j] = 0;
+                        representation[i+2][j] = 0;
+                    }
                 }
             }
         }
-    }
-    // Replace with 2's to grow size of pixels
-    for(i=0; i<dimension+1; i++){
-        for(j=0; j<dimension+1; j++){
-            if(i > 2 && j > 2 && i < (dimension-2) && j < (dimension-2)){
-                if(representation[i][j] == 1){
-                    representation[i+1][j] = 2;
-                    representation[i-1][j] = 2;
-                    representation[i][j+1] = 2;
-                    representation[i][j-1] = 2;
-                    representation[i+1][j+1] = 2;
-                    representation[i+1][j-1] = 2;
-                    representation[i-1][j+1] = 2;
-                    representation[i-1][j-1] = 2;
+        // Remove single points
+        for(i=0; i<dimension+1; i++){
+            for(j=0; j<dimension+1; j++){
+                if(i > 2 && j > 2 && i < (dimension-2) && j < (dimension-2)){
+                    if(representation[i][j] == 1 && representation[i-1][j] == 0 && representation[i+1][j] == 0 && representation[i][j+1] == 0 && representation[i][j-1] == 0 && representation[i+1][j+1] == 0 && representation[i-1][j-1] == 0){
+                        representation[i][j] = 0;
+                    }
+                }
+            }
+        }
+        // Replace with 2's to grow size of pixels
+        for(i=0; i<dimension+1; i++){
+            for(j=0; j<dimension+1; j++){
+                if(i > RANGE && j > RANGE && i < (dimension-RANGE) && j < (dimension-RANGE)){
+                    if(representation[i][j] == 1){
+                        
+                        int64_t m, l;
+                        for(m=-RANGE; m<RANGE; m++){
+                            for(l=-RANGE; l<RANGE; l++){
+                                representation[(int64_t)i+m][(int64_t)j+l] = 2;
+                            }
+                        }
+                        // representation[i+1][j] = 2;
+                        // representation[i-1][j] = 2;
+                        // representation[i][j+1] = 2;
+                        // representation[i][j-1] = 2;
+                        // representation[i+1][j+1] = 2;
+                        // representation[i+1][j-1] = 2;
+                        // representation[i-1][j+1] = 2;
+                        // representation[i-1][j-1] = 2;
+                    }
                 }
             }
         }
@@ -562,7 +571,7 @@ int main(int argc, char ** av){
     return 0;
 }
 
-void init_args(int argc, char ** av, FILE ** query, FILE ** database, FILE ** out_database, uint64_t * custom_kmer, uint64_t * dimension){
+void init_args(int argc, char ** av, FILE ** query, FILE ** database, FILE ** out_database, uint64_t * custom_kmer, uint64_t * dimension, unsigned char * filtering){
 
     int pNum = 0;
     while(pNum < argc){
@@ -573,6 +582,7 @@ void init_args(int argc, char ** av, FILE ** query, FILE ** database, FILE ** ou
             fprintf(stdout, "           -kmer       [Integer:   k>1 (default 12)]\n");
             fprintf(stdout, "           -dimension  Size of the output [Integer:   d>0 (default 1000)]\n");
             fprintf(stdout, "           -out        [File path]\n");
+            fprintf(stdout, "           --filter     Enables filtering\n");
             fprintf(stdout, "           --help      Shows help for program usage\n");
             fprintf(stdout, "\n");
             fprintf(stdout, "PLEASE NOTICE: The reverse complementary is calculated for the QUERY.");
@@ -597,6 +607,9 @@ void init_args(int argc, char ** av, FILE ** query, FILE ** database, FILE ** ou
         if(strcmp(av[pNum], "-dimension") == 0){
             *dimension = (uint64_t) atoi(av[pNum+1]);
             if(*dimension < 1) terror("Dimension must be a positive integer");
+        }
+        if(strcmp(av[pNum], "--filter") == 0){
+            *filtering = 1;
         }
         pNum++;
     }
