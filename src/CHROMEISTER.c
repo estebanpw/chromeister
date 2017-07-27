@@ -25,17 +25,16 @@ USAGE       Usage is described by calling ./CHROMEISTER --help
 #define MIN(x, y) (((x) <= (y)) ? (x) : (y))
 #define STARTING_SEQS 1000
 #define PIECE_OF_DB_REALLOC 3200000 //half a gigabyte if divided by 8 bytes
+#define CHAIN_LEN 5
 
 uint64_t custom_kmer = 12; // Defined as external in structs.h
 
 void init_args(int argc, char ** av, FILE ** query, FILE ** database, FILE ** out_database, uint64_t * custom_kmer, uint64_t * dimension);
 
-int VERBOSE_ACTIVE = 0;
-
 int main(int argc, char ** av){
     
 
-    clock_t begin, end;
+    //clock_t begin, end;
 
     uint64_t i, j;
 
@@ -77,13 +76,10 @@ int main(int argc, char ** av){
 
     unsigned char curr_kmer[custom_kmer], reverse_kmer[custom_kmer];
     curr_kmer[0] = reverse_kmer[0] = '\0';
-    uint64_t word_size = 0, word_size_rev = 0, pos_in_database = 0;
+    uint64_t word_size = 0, word_size_rev = 0;
 
     //To hold all information related to database
-    SeqInfo data_database;
-    SeqInfo data_query;
-    data_database.total_len = 0;
-    data_database.n_seqs = 0;
+    uint64_t current_len = 0;
     
     //To force reading from the buffer
     idx = READBUF + 1;
@@ -96,12 +92,11 @@ int main(int argc, char ** av){
     init_mem_pool_llpos(&mp[n_pools_used]);
     llpos * aux, * pointer;
 
-    unsigned char aux_kmer[custom_kmer+1];
+    //unsigned char aux_kmer[custom_kmer+1];
     
     //Vector to store query seq
     unsigned char * seq_vector_query = (unsigned char *) malloc(READBUF*sizeof(unsigned char));
     if(seq_vector_query == NULL) terror("Could not allocate memory for query vector");
-    uint64_t pos_in_query = 0;
 
 
     Container * ct = (Container *) calloc(1, sizeof(Container));
@@ -109,13 +104,13 @@ int main(int argc, char ** av){
     
     
 
-    begin = clock();
+    //begin = clock();
 
     c = buffered_fgetc(temp_seq_buffer, &idx, &r, database);
     while((!feof(database) || (feof(database) && idx < r))){
 
         if(c == '>'){
-            data_database.n_seqs++;
+            // data_database.n_seqs++;
             // data_database.start_pos[data_database.n_seqs++] = pos_in_database;
             
             // if(pos_in_database == READBUF*n_realloc_database){ 
@@ -136,8 +131,8 @@ int main(int argc, char ** av){
                 c = toupper(c);
                 if(c == 'A' || c == 'C' || c == 'G' || c == 'T'){
                     curr_kmer[word_size] = (unsigned char) c;
-                    if(word_size < custom_kmer) word_size++;
-                    pos_in_database++;
+                    if(word_size < custom_kmer) ++word_size;
+                    ++current_len;
                     //data_database.sequences[pos_in_database++] = (unsigned char) c;
             
                     // if(pos_in_database == READBUF*n_realloc_database){ 
@@ -148,10 +143,10 @@ int main(int argc, char ** av){
 
                 }else{ //It can be anything (including N, Y, X ...)
 
-                    if(c != '\n' && c != '\r' && c != '>'){
+                    if(c != '\n' && c != '>'){
                         word_size = 0;
                         // data_database.sequences[pos_in_database++] = (unsigned char) 'N'; //Convert to N
-                        pos_in_database++;
+                        ++current_len;
                         // if(pos_in_database == READBUF*n_realloc_database){ 
                         //     n_realloc_database++; data_database.sequences = (unsigned char *) realloc(data_database.sequences, READBUF*n_realloc_database*sizeof(unsigned char));
                         // if(data_database.sequences == NULL) terror("Could not reallocate temporary database");
@@ -174,7 +169,7 @@ int main(int argc, char ** av){
                         pointer = getNewLocationllpos(mp, &n_pools_used);
                         
 
-                        pointer->pos = pos_in_database;
+                        pointer->pos = current_len;
 
                         pointer->extended_hash = hashOfWord(&curr_kmer[FIXED_K], custom_kmer - FIXED_K);
 
@@ -192,7 +187,7 @@ int main(int argc, char ** av){
 
                         pointer = getNewLocationllpos(mp, &n_pools_used);
 
-                        pointer->pos = pos_in_database;
+                        pointer->pos = current_len;
                         pointer->extended_hash = hashOfWord(&curr_kmer[FIXED_K], custom_kmer - FIXED_K);
                         pointer->next = aux;
 
@@ -203,9 +198,10 @@ int main(int argc, char ** av){
                     [char_converter[curr_kmer[6]]][char_converter[curr_kmer[7]]][char_converter[curr_kmer[8]]]
                     [char_converter[curr_kmer[9]]][char_converter[curr_kmer[10]]][char_converter[curr_kmer[11]]] = pointer;
 		
-		            memcpy(aux_kmer, &curr_kmer[1], custom_kmer-1);
-                    memcpy(curr_kmer, aux_kmer, custom_kmer-1);
-                    word_size--;
+		            // memcpy(aux_kmer, &curr_kmer[1], custom_kmer-1);
+                    // memcpy(curr_kmer, aux_kmer, custom_kmer-1);
+                    memmove(&curr_kmer[0], &curr_kmer[1], custom_kmer-1);
+                    --word_size;
                 }
             }
             word_size = 0;
@@ -216,52 +212,58 @@ int main(int argc, char ** av){
         
     }
 
-    end = clock();
+    //end = clock();
 
-    data_database.total_len = pos_in_database;
+    // data_database.total_len = pos_in_database;
 
-    fprintf(stdout, "[INFO] Database loaded and of length %"PRIu64". Hash table building took %e seconds\n", data_database.total_len, (double)(end-begin)/CLOCKS_PER_SEC);
+    //fprintf(stdout, "[INFO] Database loaded and of length %"PRIu64". Hash table building took %e seconds\n", data_database.total_len, (double)(end-begin)/CLOCKS_PER_SEC);
+    fprintf(stdout, "[INFO] Database loaded and of length %"PRIu64".\n", current_len);
     //close database
     fclose(database);
 
     
     
-    begin = clock();
+    //begin = clock();
 
     
 
-    //To force reading from the buffer
-    idx = READBUF + 1;
-
     
-    //data_query.sequences = seq_vector_query;
-    data_query.total_len = 0;
-    data_query.n_seqs = 0;
+
     
     
     //Print info
     fprintf(stdout, "[INFO] Generating hits\n");   
 
+    double pixel_size_db = (double) dimension / (double) current_len;
+    double ratio_db = (double) current_len / dimension;
+
+
     // Get file length
     fseek(query, 0, SEEK_END);
     uint64_t aprox_len_query = ftell(query);
     rewind(query);
-    long double pixel_size_query = (long double) dimension / (long double) aprox_len_query;
-    long double pixel_size_db = (long double) dimension / (long double) data_database.total_len;
-    
-    long double ratio_query = (long double) aprox_len_query / dimension;
-    long double ratio_db = (long double) data_database.total_len / dimension;
 
-    uint64_t hash_forward, hash_reverse;
+    uint64_t a_hundreth = (aprox_len_query/100);
+    double pixel_size_query = (double) dimension / (double) aprox_len_query;
+    double ratio_query = (double) aprox_len_query / dimension;
     
-    fprintf(stdout, "[INFO] Ratios: Q [%Le] D [%Le]. Lenghts: Q [%"PRIu64"] D [%"PRIu64"]\n", ratio_query, ratio_db, aprox_len_query, data_database.total_len);
 
+    double i_r_fix = MAX(1.0, custom_kmer * pixel_size_query);
+    double j_r_fix = MAX(1.0, custom_kmer * pixel_size_db);
+
+    
+    
+    fprintf(stdout, "[INFO] Ratios: Q [%e] D [%e]. Lenghts: Q [%"PRIu64"] D [%"PRIu64"]\n", ratio_query, ratio_db, aprox_len_query, current_len);
+
+    current_len = 0;
+
+    //To force reading from the buffer
+    idx = READBUF + 1;
     c = buffered_fgetc(temp_seq_buffer, &idx, &r, query);    
     
     while((!feof(query) || (feof(query) && idx < r))){
 
         if(c == '>'){
-            data_query.n_seqs++;
             word_size = 0;
             word_size_rev = custom_kmer-1;
             
@@ -276,9 +278,18 @@ int main(int argc, char ** av){
                 c = toupper(c);
                 if(c == 'A' || c == 'C' || c == 'G' || c == 'T'){
                     
-                    pos_in_query++;
-                    if(pos_in_query % (aprox_len_query/10) == 0) printf("%"PRIu64"%%..", 1+100*pos_in_query/aprox_len_query);
-                    curr_kmer[word_size++] = (unsigned char) c;
+                    ++current_len;
+                    if(current_len % a_hundreth == 0){ 
+                        printf("%"PRIu64"%%..", 1+100*current_len/aprox_len_query); 
+                        //printf("%"PRIu64"%%..wasted: (%e) (%e)", 1+100*pos_in_query/aprox_len_query, (double)(wasted_cycles_forward)/CLOCKS_PER_SEC, (double)(wasted_cycles_reverse)/CLOCKS_PER_SEC); 
+                        fflush(stdout);
+                    }
+                    // if(pos_in_query % 500000 == 0){
+                    //     fprintf(stdout, "[INFO] Query aprox length %"PRIu64". I have done: %"PRIu64" and time= %e seconds\n", aprox_len_query, pos_in_query, (double)(clock()-begin)/CLOCKS_PER_SEC);
+                    //     begin = clock();
+                    // } 
+                    curr_kmer[word_size] = (unsigned char) c;
+                    ++word_size;
 
                     switch(c){
                         case ('A'): reverse_kmer[word_size_rev] = (unsigned)'T';
@@ -290,31 +301,43 @@ int main(int argc, char ** av){
                         case ('T'): reverse_kmer[word_size_rev] = (unsigned)'A';
                         break;
                     }
-                    if(word_size_rev != 0) word_size_rev--;
+                    if(word_size_rev != 0) --word_size_rev;
 
                     
                     if(word_size == custom_kmer){
+
 
                         aux = ct->table[char_converter[curr_kmer[0]]][char_converter[curr_kmer[1]]][char_converter[curr_kmer[2]]]
                         [char_converter[curr_kmer[3]]][char_converter[curr_kmer[4]]][char_converter[curr_kmer[5]]]
                         [char_converter[curr_kmer[6]]][char_converter[curr_kmer[7]]][char_converter[curr_kmer[8]]]
                         [char_converter[curr_kmer[9]]][char_converter[curr_kmer[10]]][char_converter[curr_kmer[11]]];
 
-
+                        uint64_t hash_forward, hash_reverse;
                         hash_forward = hashOfWord(&curr_kmer[FIXED_K], custom_kmer - FIXED_K);
                         hash_reverse = hashOfWord(&reverse_kmer[FIXED_K], custom_kmer - FIXED_K);
 
                         while(aux != NULL){
+                            
 
                             if(aux->extended_hash == hash_forward){
-                                
+                                // begin = clock();
 
                                 // Convert scale to representation
                                 uint64_t redir_db = (uint64_t) (aux->pos / (ratio_db));
-                                uint64_t redir_query = (uint64_t) (pos_in_query / (ratio_query));
+                                uint64_t redir_query = (uint64_t) (current_len / (ratio_query));
 
-                                long double i_r = MAX(1.0, custom_kmer * pixel_size_query);
-                                long double j_r = MAX(1.0, custom_kmer * pixel_size_db);
+                                //representation[redir_query][redir_db] = 1;
+
+                                // long double i_r = MAX(1.0, custom_kmer * pixel_size_query);
+                                // long double j_r = MAX(1.0, custom_kmer * pixel_size_db);
+
+                                // Simple pixel paint
+                                //representation[redir_query][redir_db] = 1;
+
+                                double i_r = i_r_fix; double j_r = j_r_fix;
+
+                                
+
                                 while((uint64_t) i_r >= 1 && (uint64_t) j_r >= 1){
                                     // printf("I have %Le %Le which is %"PRIu64" %"PRIu64"\n", i_r, j_r, (uint64_t) i_r, (uint64_t) j_r);
                                     // printf("Hit is at %"PRIu64", %"PRIu64"\n", pos_in_query, aux->pos);
@@ -332,20 +355,31 @@ int main(int argc, char ** av){
                                     j_r -= pixel_size_db;
 
                                 }
+                                
                             }
 
                             
                             
                             if(aux->extended_hash == hash_reverse){
                                 //printf("enter\n");
+                                // begin = clock();
                     
 
                                 // Convert scale to representation
                                 uint64_t redir_db = (uint64_t) ( (aux->pos + custom_kmer) / (ratio_db));
-                                uint64_t redir_query = (uint64_t) ((pos_in_query ) / (ratio_query));
+                                uint64_t redir_query = (uint64_t) ((current_len ) / (ratio_query));
 
-                                long double i_r = MAX(1.0, custom_kmer * pixel_size_query);
-                                long double j_r = MAX(1.0, custom_kmer * pixel_size_db);
+                                //representation[redir_query][redir_db] = 1;
+
+                                // long double i_r = MAX(1.0, custom_kmer * pixel_size_query);
+                                // long double j_r = MAX(1.0, custom_kmer * pixel_size_db);
+                                
+
+                                // Simple pixel paint
+                                //representation[redir_query][redir_db] = 1;
+
+                                double i_r = i_r_fix; double j_r = j_r_fix;
+
                                 while((uint64_t) i_r >= 1 && (uint64_t) j_r >= 1){
                                     // printf("I have %Le %Le which is %"PRIu64" %"PRIu64"\n", i_r, j_r, (uint64_t) i_r, (uint64_t) j_r);
                                     // printf("Hit is at %"PRIu64", %"PRIu64"\n", pos_in_query, aux->pos);
@@ -363,14 +397,22 @@ int main(int argc, char ** av){
                                     j_r -= pixel_size_db;
 
                                 }
+                                
+                                
                             }
                             
                             aux = aux->next;
                         }
 
-                        memmove(&curr_kmer[0], &curr_kmer[1], custom_kmer-1);
-                        memmove(&reverse_kmer[1], &reverse_kmer[0], custom_kmer-1);
-                        word_size--;
+                        // Overlapping
+                        
+                        // memmove(&curr_kmer[0], &curr_kmer[1], custom_kmer-1);
+                        // memmove(&reverse_kmer[1], &reverse_kmer[0], custom_kmer-1);
+                        // --word_size;
+
+                        // Non overlapping
+                        word_size = 0;
+                        word_size_rev = custom_kmer-1;
                     }
 
 
@@ -380,10 +422,10 @@ int main(int argc, char ** av){
                     //     if(data_query.sequences == NULL) terror("Could not reallocate temporary query");
                     // }
                 }else{
-                    if(c != '\n' && c != '\r' && c != '>'){
+                    if(c != '\n' && c != '>'){
                         word_size = 0;
                         word_size_rev = custom_kmer-1;
-                        pos_in_query++;
+                        ++current_len;
                         // data_query.sequences[pos_in_query++] = (unsigned char) 'N'; //Convert to N
                         // if(pos_in_query == READBUF*n_realloc_database){ 
                         //     n_realloc_database++; data_query.sequences = (unsigned char *) realloc(data_query.sequences, READBUF*n_realloc_database*sizeof(unsigned char));
@@ -398,15 +440,15 @@ int main(int argc, char ** av){
         
     }
 
-    end = clock();
+    //end = clock();
 
     
     
-    data_query.total_len = pos_in_query;
 
-    fprintf(stdout, "\n[INFO] Query length %"PRIu64". Hits completed. Took %e seconds\n", data_query.total_len, (double)(end-begin)/CLOCKS_PER_SEC);
+    //fprintf(stdout, "\n[INFO] Query length %"PRIu64". Hits completed. Took %e seconds\n", data_query.total_len, (double)(end-begin)/CLOCKS_PER_SEC);
+    fprintf(stdout, "\n[INFO] Query length %"PRIu64".\n", current_len);
 
-    begin = clock();
+    //begin = clock();
 
 
     /*
@@ -430,8 +472,68 @@ int main(int argc, char ** av){
     // representation[5][0] = 1;
 
 
+    // for(i=0; i<dimension+1; i++){
+    //     for(j=0; j<dimension+1; j++){
+    //         fprintf(out_database, "%d ", (int) representation[i][j]);
+    //     }
+    //     fprintf(out_database, "\n");
+    // }
+
+    // Simple filtering
+
     for(i=0; i<dimension+1; i++){
         for(j=0; j<dimension+1; j++){
+            if(i > 2 && j > 2 && i < (dimension-2) && j < (dimension-2)){
+                // Non continuos diagonal
+                if(representation[i][j] == 1 && representation[i+1][j+1] == 0){                    
+                    representation[i][j] = 0;
+                }
+                // Colum repetitions
+                if(representation[i][j] == 1 && representation[i][j+1] == 1 && representation[i][j+2] == 1){
+                    representation[i][j] = 0;
+                    representation[i][j+1] = 0;
+                    representation[i][j+2] = 0;
+                }
+                // Row repetitions
+                if(representation[i][j] == 1 && representation[i+1][j] == 1 && representation[i+2][j] == 1){
+                    representation[i][j] = 0;
+                    representation[i+1][j] = 0;
+                    representation[i+2][j] = 0;
+                }
+            }
+        }
+    }
+    // Remove single points
+    for(i=0; i<dimension+1; i++){
+        for(j=0; j<dimension+1; j++){
+            if(i > 2 && j > 2 && i < (dimension-2) && j < (dimension-2)){
+                if(representation[i][j] == 1 && representation[i-1][j] == 0 && representation[i+1][j] == 0 && representation[i][j+1] == 0 && representation[i][j-1] == 0 && representation[i+1][j+1] == 0 && representation[i-1][j-1] == 0){
+                    representation[i][j] = 0;
+                }
+            }
+        }
+    }
+    // Replace with 2's to grow size of pixels
+    for(i=0; i<dimension+1; i++){
+        for(j=0; j<dimension+1; j++){
+            if(i > 2 && j > 2 && i < (dimension-2) && j < (dimension-2)){
+                if(representation[i][j] == 1){
+                    representation[i+1][j] = 2;
+                    representation[i-1][j] = 2;
+                    representation[i][j+1] = 2;
+                    representation[i][j-1] = 2;
+                    representation[i+1][j+1] = 2;
+                    representation[i+1][j-1] = 2;
+                    representation[i-1][j+1] = 2;
+                    representation[i-1][j-1] = 2;
+                }
+            }
+        }
+    }
+    // And replace 2's with 1's 
+    for(i=0; i<dimension+1; i++){
+        for(j=0; j<dimension+1; j++){
+            if(representation[i][j] == 2) representation[i][j] = 1;
             fprintf(out_database, "%d ", (int) representation[i][j]);
         }
         fprintf(out_database, "\n");
@@ -464,7 +566,6 @@ void init_args(int argc, char ** av, FILE ** query, FILE ** database, FILE ** ou
 
     int pNum = 0;
     while(pNum < argc){
-        if(strcmp(av[pNum], "--verbose") == 0) VERBOSE_ACTIVE = 1;
         if(strcmp(av[pNum], "--help") == 0){
             fprintf(stdout, "USAGE:\n");
             fprintf(stdout, "           CHROMEISTER -query [query] -db [database] -out [outfile]\n");

@@ -171,7 +171,5 @@ void inplace_reverse_and_complement(unsigned char *d, uint64_t l){
     for(i=0;i<l;i++){
         //printf("eeee: %d", (int)d[i]);
         d[i] = complement(d[i]);
-        
-
     }
 }
