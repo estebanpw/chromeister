@@ -25,7 +25,7 @@ USAGE       Usage is described by calling ./CHROMEISTER --help
 #define MIN(x, y) (((x) <= (y)) ? (x) : (y))
 #define STARTING_SEQS 1000
 #define PIECE_OF_DB_REALLOC 3200000 //half a gigabyte if divided by 8 bytes
-#define RANGE 4
+#define RANGE 2
 
 uint64_t custom_kmer = 12; // Defined as external in structs.h
 
@@ -176,6 +176,7 @@ int main(int argc, char ** av){
 
                         pointer->next = NULL;
 
+
                     
 
                     }else{
@@ -235,6 +236,7 @@ int main(int argc, char ** av){
     //Print info
     fprintf(stdout, "[INFO] Generating hits\n");   
 
+    uint64_t keep_db_size = current_len;
     double pixel_size_db = (double) dimension / (double) current_len;
     double ratio_db = (double) current_len / dimension;
 
@@ -255,6 +257,7 @@ int main(int argc, char ** av){
     
     
     fprintf(stdout, "[INFO] Ratios: Q [%e] D [%e]. Lenghts: Q [%"PRIu64"] D [%"PRIu64"]\n", ratio_query, ratio_db, aprox_len_query, current_len);
+    fprintf(stdout, "[INFO] Pixel size: Q [%e] D [%e].\n", pixel_size_query, pixel_size_db);
 
     current_len = 0;
 
@@ -317,6 +320,21 @@ int main(int argc, char ** av){
                         hash_forward = hashOfWord(&curr_kmer[FIXED_K], custom_kmer - FIXED_K);
                         hash_reverse = hashOfWord(&reverse_kmer[FIXED_K], custom_kmer - FIXED_K);
 
+                        
+
+                        /*
+                        uint64_t w;
+                        for(w=0;w<custom_kmer;w++){
+                            printf("%c", (char) curr_kmer[w]);
+                        }
+                        printf("\n");
+                        for(w=0;w<custom_kmer;w++){
+                            printf("%c", (char) reverse_kmer[w]);
+                        }
+                        printf("---------------\n"); getchar();
+                        */
+                        
+
                         while(aux != NULL){
                             
 
@@ -337,38 +355,67 @@ int main(int argc, char ** av){
 
                                 double i_r = i_r_fix; double j_r = j_r_fix;
 
-                                
+                                // printf("Hit is at %"PRIu64", %"PRIu64"\n", current_len, aux->pos);
+                                // printf("redir : %"PRIu64" %"PRIu64"\n", redir_query, redir_db);
+                                // printf("drwaing: %"PRId64", %"PRId64"\n", (int64_t) redir_query - (int64_t) i_r, (int64_t) redir_db - (int64_t) j_r);
+                                // getchar();
 
                                 while((uint64_t) i_r >= 1 && (uint64_t) j_r >= 1){
-                                    // printf("I have %Le %Le which is %"PRIu64" %"PRIu64"\n", i_r, j_r, (uint64_t) i_r, (uint64_t) j_r);
-                                    // printf("Hit is at %"PRIu64", %"PRIu64"\n", pos_in_query, aux->pos);
-                                    // printf("redir : %"PRIu64" %"PRIu64"\n", redir_query, redir_db);
-                                    // getchar();
+                                    
+                                    
                                      if((int64_t) redir_query - (int64_t) i_r > 0 && (int64_t) redir_db - (int64_t) j_r > 0){
                                          representation[(int64_t) redir_query - (int64_t) i_r][(int64_t) redir_db - (int64_t) j_r] = 1;
+                                         //printf("\tplus at %"PRId64", %"PRId64"\n", (int64_t) redir_query - (int64_t) i_r, (int64_t) redir_db - (int64_t) j_r);
                                     }else{
                                         representation[redir_query][redir_db] = 1;
                                         break;
                                     }
-                                    if(pixel_size_query == 0 || pixel_size_db == 0) break;
                                     
-                                    i_r -= pixel_size_query;
-                                    j_r -= pixel_size_db;
+                                    i_r -= MIN(1.0, pixel_size_query);
+                                    j_r -= MIN(1.0, pixel_size_db);
 
                                 }
                                 
                             }
+                            aux = aux->next;
+                        }
 
-                            
+
+
+
+                        aux = ct->table[char_converter[reverse_kmer[0]]][char_converter[reverse_kmer[1]]][char_converter[reverse_kmer[2]]]
+                        [char_converter[reverse_kmer[3]]][char_converter[reverse_kmer[4]]][char_converter[reverse_kmer[5]]]
+                        [char_converter[reverse_kmer[6]]][char_converter[reverse_kmer[7]]][char_converter[reverse_kmer[8]]]
+                        [char_converter[reverse_kmer[9]]][char_converter[reverse_kmer[10]]][char_converter[reverse_kmer[11]]];
+
+                        while(aux != NULL){                          
                             
                             if(aux->extended_hash == hash_reverse){
-                                //printf("enter\n");
-                                // begin = clock();
+                                // printf("enter\n");
+                                // // begin = clock();
+                                
+                                // uint64_t w;
+                                // for(w=0;w<custom_kmer;w++){
+                                //     printf("%c", (char) curr_kmer[w]);
+                                // }
+                                // printf("\n");
+                                // for(w=0;w<custom_kmer;w++){
+                                //     printf("%c", (char) reverse_kmer[w]);
+                                // }
+                                // printf("\n---------------\n"); getchar();
+                                
                     
 
                                 // Convert scale to representation
-                                uint64_t redir_db = (uint64_t) ( (aux->pos + custom_kmer) / (ratio_db));
+                                uint64_t redir_db = (uint64_t) ( (aux->pos) / (ratio_db));
                                 uint64_t redir_query = (uint64_t) ((current_len ) / (ratio_query));
+                                
+                                
+                                // printf("found at %"PRIu64", %"PRIu64"\n", current_len, aux->pos);
+                                // printf("original paint is %"PRIu64", %"PRIu64"\n", redir_query, (uint64_t)(aux->pos / ratio_db));
+                                // printf("therefore i paint at %"PRIu64", %"PRIu64"\n", redir_query, redir_db);
+                                // getchar();
+                                
 
                                 //representation[redir_query][redir_db] = 1;
 
@@ -387,15 +434,16 @@ int main(int argc, char ** av){
                                     // printf("redir : %"PRIu64" %"PRIu64"\n", redir_query, redir_db);
                                     // printf("drwaing: %"PRId64", %"PRId64"\n", (int64_t) redir_query - (int64_t) i_r, (int64_t) redir_db - (int64_t) j_r);
                                     // getchar();
-                                    if((int64_t) redir_query + (int64_t) i_r < dimension && (int64_t) redir_db - (int64_t) j_r > 0){
-                                         representation[(int64_t) redir_query + (int64_t) i_r][(int64_t) redir_db - (int64_t) j_r] = 1;
+                                    if((int64_t) redir_query - (int64_t) i_r > 0 && (int64_t) redir_db + (int64_t) j_r < dimension){
+                                         representation[(int64_t) redir_query - (int64_t) i_r][(int64_t) redir_db + (int64_t) j_r] = 1;
+                                         //printf("\tplus at %"PRId64", %"PRId64"\n", (int64_t) redir_query - (int64_t) i_r, (int64_t) redir_db + (int64_t) j_r);
                                     }else{
+                                        //printf("%"PRIu64",%"PRIu64"\n", redir_query, redir_db);
                                         representation[redir_query][redir_db] = 1;
                                         break;
                                     }
-                                    if(pixel_size_query == 0 || pixel_size_db == 0) break;
-                                    i_r -= pixel_size_query;
-                                    j_r -= pixel_size_db;
+                                    i_r -= MIN(1.0, pixel_size_query);
+                                    j_r -= MIN(1.0, pixel_size_db);
 
                                 }
                                 
@@ -485,8 +533,8 @@ int main(int argc, char ** av){
         for(i=0; i<dimension+1; i++){
             for(j=0; j<dimension+1; j++){
                 if(i > 2 && j > 2 && i < (dimension-2) && j < (dimension-2)){
-                    // Non continuos diagonal
-                    if(representation[i][j] == 1 && representation[i+1][j+1] == 0){                    
+                    // Non continuos diagonal (both forward and reverse)
+                    if(representation[i][j] == 1 && representation[i+1][j+1] == 0 && representation[i+1][j-1] == 0){                    
                         representation[i][j] = 0;
                     }
                     // Colum repetitions
@@ -514,27 +562,27 @@ int main(int argc, char ** av){
                 }
             }
         }
-        // Replace with 2's to grow size of pixels
-        for(i=0; i<dimension+1; i++){
-            for(j=0; j<dimension+1; j++){
-                if(i > RANGE && j > RANGE && i < (dimension-RANGE) && j < (dimension-RANGE)){
-                    if(representation[i][j] == 1){
+    }
+    // Replace with 2's to grow size of pixels
+    for(i=0; i<dimension+1; i++){
+        for(j=0; j<dimension+1; j++){
+            if(i > RANGE && j > RANGE && i < (dimension-RANGE) && j < (dimension-RANGE)){
+                if(representation[i][j] == 1){
                         
-                        int64_t m, l;
-                        for(m=-RANGE; m<RANGE; m++){
-                            for(l=-RANGE; l<RANGE; l++){
-                                representation[(int64_t)i+m][(int64_t)j+l] = 2;
-                            }
+                    int64_t m, l;
+                    for(m=-RANGE; m<RANGE; m++){
+                        for(l=-RANGE; l<RANGE; l++){
+                            representation[(int64_t)i+m][(int64_t)j+l] = 2;
                         }
-                        // representation[i+1][j] = 2;
-                        // representation[i-1][j] = 2;
-                        // representation[i][j+1] = 2;
-                        // representation[i][j-1] = 2;
-                        // representation[i+1][j+1] = 2;
-                        // representation[i+1][j-1] = 2;
-                        // representation[i-1][j+1] = 2;
-                        // representation[i-1][j-1] = 2;
                     }
+                    // representation[i+1][j] = 2;
+                    // representation[i-1][j] = 2;
+                    // representation[i][j+1] = 2;
+                    // representation[i][j-1] = 2;
+                    // representation[i+1][j+1] = 2;
+                    // representation[i+1][j-1] = 2;
+                    // representation[i-1][j+1] = 2;
+                    // representation[i-1][j-1] = 2;
                 }
             }
         }

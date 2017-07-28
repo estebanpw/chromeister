@@ -11,12 +11,16 @@ FILE2=$(basename $G2)
 BINDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 
-if [ $# != 4 ]; then
-        echo "***ERROR*** Use: $0 <G1> <G2> <KMER SIZE> <DIMENSION>"
+if [ $# -lt 4 ]; then
+        echo "***ERROR*** Use: $0 <G1> <G2> <KMER SIZE> <DIMENSION> <--filter/nothing>"
         exit -1
 fi
 
-(time $BINDIR/CHROMEISTER -query $G1 -db $G2 -kmer $KMER -out $FILE1-$FILE2.mat -dimension $DIM) &> $FILE1-$FILE2.log
+
+
+(time $BINDIR/CHROMEISTER -query $G1 -db $G2 -kmer $KMER -out $FILE1-$FILE2.mat -dimension $DIM $5) &> $FILE1-$FILE2.log
 
 $BINDIR/plot.R $FILE1-$FILE2.mat
 
+
+rm $FILE1-$FILE2.mat
