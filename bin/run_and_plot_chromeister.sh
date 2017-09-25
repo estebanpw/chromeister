@@ -23,4 +23,4 @@ fi
 $BINDIR/plot.R $FILE1-$FILE2.mat
 
 
-rm $FILE1-$FILE2.mat
+#rm $FILE1-$FILE2.mat

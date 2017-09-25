@@ -9,7 +9,7 @@ if(length(args) < 1){
 path_mat = args[1]
 
 
-data <- read.csv(path_mat, header = FALSE, sep = " ")
+data <- read.csv(path_mat, header = FALSE, sep = " ", skip=1)
 
 
 png(paste(path_mat, ".png", sep=""), width = length(data[,1]), height = length(data[,1]))

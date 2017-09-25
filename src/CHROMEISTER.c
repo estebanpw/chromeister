@@ -52,6 +52,9 @@ int main(int argc, char ** av){
     char_converter[(unsigned char)'G'] = 2;
     char_converter[(unsigned char)'T'] = 3;
 
+    long double score = 0.0; // To compute the accumulated score
+    uint64_t n_hits = 0;        // Total number of hits found
+
     
     //Variables to account for positions
     //Print info
@@ -340,6 +343,9 @@ int main(int argc, char ** av){
 
                             if(aux->extended_hash == hash_forward){
                                 // begin = clock();
+                                
+                                ++n_hits; // Found a hit
+                                score += ( (long double) keep_db_size) / ( (long double) 1 + llabs((int64_t) current_len - (int64_t) aux->pos));
 
                                 // Convert scale to representation
                                 uint64_t redir_db = (uint64_t) (aux->pos / (ratio_db));
@@ -404,7 +410,8 @@ int main(int argc, char ** av){
                                 // }
                                 // printf("\n---------------\n"); getchar();
                                 
-                    
+                                ++n_hits; // Found a hit
+                                score += ( (long double) aprox_len_query) / ( (long double) 1 + ((int64_t) aux->pos - (int64_t) current_len));
 
                                 // Convert scale to representation
                                 uint64_t redir_db = (uint64_t) ( (aux->pos) / (ratio_db));
@@ -587,6 +594,10 @@ int main(int argc, char ** av){
             }
         }
     }
+
+    // Print score
+    fprintf(out_database, "%Le\n", score / (long double) n_hits);
+
     // And replace 2's with 1's 
     for(i=0; i<dimension+1; i++){
         for(j=0; j<dimension+1; j++){
@@ -595,6 +606,8 @@ int main(int argc, char ** av){
         }
         fprintf(out_database, "\n");
     }
+
+    
 
     /*
     uint64_t z;
@@ -645,7 +658,7 @@ void init_args(int argc, char ** av, FILE ** query, FILE ** database, FILE ** ou
             if(database==NULL) terror("Could not open database file");
         }
         if(strcmp(av[pNum], "-out") == 0){
-            *out_database = fopen64(av[pNum+1], "wt");
+            *out_database = fopen(av[pNum+1], "wt");
             if(out_database==NULL) terror("Could not open output database file");
         }
         if(strcmp(av[pNum], "-kmer") == 0){
