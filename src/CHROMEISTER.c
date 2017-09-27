@@ -71,10 +71,10 @@ int main(int argc, char ** av){
     }
 
     //Dimensional matrix
-    unsigned char ** representation = (unsigned char **) calloc(dimension+1, sizeof(unsigned char *));
+    uint64_t ** representation = (uint64_t **) calloc(dimension+1, sizeof(uint64_t *));
     if(representation == NULL) terror("Could not allocate representation");
     for(i=0; i<dimension+1; i++){
-        representation[i] = (unsigned char *) calloc(dimension+1, sizeof(unsigned char));
+        representation[i] = (uint64_t *) calloc(dimension+1, sizeof(uint64_t));
         if(representation[i] == NULL) terror("Could not allocate second loop representation");
     }
 
@@ -314,10 +314,13 @@ int main(int argc, char ** av){
                     if(word_size == custom_kmer){
 
 
+			
                         aux = ct->table[char_converter[curr_kmer[0]]][char_converter[curr_kmer[1]]][char_converter[curr_kmer[2]]]
                         [char_converter[curr_kmer[3]]][char_converter[curr_kmer[4]]][char_converter[curr_kmer[5]]]
                         [char_converter[curr_kmer[6]]][char_converter[curr_kmer[7]]][char_converter[curr_kmer[8]]]
                         [char_converter[curr_kmer[9]]][char_converter[curr_kmer[10]]][char_converter[curr_kmer[11]]];
+
+
 
                         uint64_t hash_forward, hash_reverse;
                         hash_forward = hashOfWord(&curr_kmer[FIXED_K], custom_kmer - FIXED_K);
@@ -342,10 +345,9 @@ int main(int argc, char ** av){
                             
 
                             if(aux->extended_hash == hash_forward){
+
+
                                 // begin = clock();
-                                
-                                ++n_hits; // Found a hit
-                                score += ( (long double) keep_db_size) / ( (long double) 1 + llabs((int64_t) current_len - (int64_t) aux->pos));
 
                                 // Convert scale to representation
                                 uint64_t redir_db = (uint64_t) (aux->pos / (ratio_db));
@@ -370,10 +372,10 @@ int main(int argc, char ** av){
                                     
                                     
                                      if((int64_t) redir_query - (int64_t) i_r > 0 && (int64_t) redir_db - (int64_t) j_r > 0){
-                                         representation[(int64_t) redir_query - (int64_t) i_r][(int64_t) redir_db - (int64_t) j_r] = 1;
+                                         representation[(int64_t) redir_query - (int64_t) i_r][(int64_t) redir_db - (int64_t) j_r]++;
                                          //printf("\tplus at %"PRId64", %"PRId64"\n", (int64_t) redir_query - (int64_t) i_r, (int64_t) redir_db - (int64_t) j_r);
                                     }else{
-                                        representation[redir_query][redir_db] = 1;
+                                        representation[redir_query][redir_db]++;
                                         break;
                                     }
                                     
@@ -409,9 +411,8 @@ int main(int argc, char ** av){
                                 //     printf("%c", (char) reverse_kmer[w]);
                                 // }
                                 // printf("\n---------------\n"); getchar();
+				//
                                 
-                                ++n_hits; // Found a hit
-                                score += ( (long double) aprox_len_query) / ( (long double) 1 + ((int64_t) aux->pos - (int64_t) current_len));
 
                                 // Convert scale to representation
                                 uint64_t redir_db = (uint64_t) ( (aux->pos) / (ratio_db));
@@ -442,11 +443,11 @@ int main(int argc, char ** av){
                                     // printf("drwaing: %"PRId64", %"PRId64"\n", (int64_t) redir_query - (int64_t) i_r, (int64_t) redir_db - (int64_t) j_r);
                                     // getchar();
                                     if((int64_t) redir_query - (int64_t) i_r > 0 && (int64_t) redir_db + (int64_t) j_r < dimension){
-                                         representation[(int64_t) redir_query - (int64_t) i_r][(int64_t) redir_db + (int64_t) j_r] = 1;
+                                         representation[(int64_t) redir_query - (int64_t) i_r][(int64_t) redir_db + (int64_t) j_r]++;
                                          //printf("\tplus at %"PRId64", %"PRId64"\n", (int64_t) redir_query - (int64_t) i_r, (int64_t) redir_db + (int64_t) j_r);
                                     }else{
                                         //printf("%"PRIu64",%"PRIu64"\n", redir_query, redir_db);
-                                        representation[redir_query][redir_db] = 1;
+                                        representation[redir_query][redir_db]++;
                                         break;
                                     }
                                     i_r -= MIN(1.0, pixel_size_query);
@@ -536,75 +537,14 @@ int main(int argc, char ** av){
     // }
 
     // Simple filtering
-    if(filtering == 1){
-        for(i=0; i<dimension+1; i++){
-            for(j=0; j<dimension+1; j++){
-                if(i > 2 && j > 2 && i < (dimension-2) && j < (dimension-2)){
-                    // Non continuos diagonal (both forward and reverse)
-                    if(representation[i][j] == 1 && representation[i+1][j+1] == 0 && representation[i+1][j-1] == 0){                    
-                        representation[i][j] = 0;
-                    }
-                    // Colum repetitions
-                    if(representation[i][j] == 1 && representation[i][j+1] == 1 && representation[i][j+2] == 1){
-                        representation[i][j] = 0;
-                        representation[i][j+1] = 0;
-                        representation[i][j+2] = 0;
-                    }
-                    // Row repetitions
-                    if(representation[i][j] == 1 && representation[i+1][j] == 1 && representation[i+2][j] == 1){
-                        representation[i][j] = 0;
-                        representation[i+1][j] = 0;
-                        representation[i+2][j] = 0;
-                    }
-                }
-            }
-        }
-        // Remove single points
-        for(i=0; i<dimension+1; i++){
-            for(j=0; j<dimension+1; j++){
-                if(i > 2 && j > 2 && i < (dimension-2) && j < (dimension-2)){
-                    if(representation[i][j] == 1 && representation[i-1][j] == 0 && representation[i+1][j] == 0 && representation[i][j+1] == 0 && representation[i][j-1] == 0 && representation[i+1][j+1] == 0 && representation[i-1][j-1] == 0){
-                        representation[i][j] = 0;
-                    }
-                }
-            }
-        }
-    }
-    // Replace with 2's to grow size of pixels
-    for(i=0; i<dimension+1; i++){
-        for(j=0; j<dimension+1; j++){
-            if(i > RANGE && j > RANGE && i < (dimension-RANGE) && j < (dimension-RANGE)){
-                if(representation[i][j] == 1){
-                        
-                    int64_t m, l;
-                    for(m=-RANGE; m<RANGE; m++){
-                        for(l=-RANGE; l<RANGE; l++){
-                            representation[(int64_t)i+m][(int64_t)j+l] = 2;
-                        }
-                    }
-                    // representation[i+1][j] = 2;
-                    // representation[i-1][j] = 2;
-                    // representation[i][j+1] = 2;
-                    // representation[i][j-1] = 2;
-                    // representation[i+1][j+1] = 2;
-                    // representation[i+1][j-1] = 2;
-                    // representation[i-1][j+1] = 2;
-                    // representation[i-1][j-1] = 2;
-                }
-            }
-        }
-    }
-
     // Print score
-    fprintf(out_database, "%Le\n", score / (long double) n_hits);
 
     // And replace 2's with 1's 
     for(i=0; i<dimension+1; i++){
-        for(j=0; j<dimension+1; j++){
-            if(representation[i][j] == 2) representation[i][j] = 1;
-            fprintf(out_database, "%d ", (int) representation[i][j]);
+        for(j=0; j<dimension; j++){
+            fprintf(out_database, "%"PRIu64" ", representation[i][j]);
         }
-        fprintf(out_database, "\n");
+        fprintf(out_database, "%"PRIu64"\n",  representation[i][dimension]);
     }
 
     
