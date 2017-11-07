@@ -36,7 +36,6 @@ for ((i=0 ; i < ${#array[@]} ; i++))
 do
 	for ((j=0 ; j < ${#array2[@]} ; j++))
 	do
-		if [ $i != $j ]; then
 				seqX=${array[$i]}
 				seqY=${array2[$j]}
 				echo "----------${seqX}-${seqY}-----------"
@@ -44,10 +43,10 @@ do
 				
 				#echo "$BINDIR/run_and_plot_chromeister.sh $DIR/${seqX}.$EXT $DIR/${seqY}.$EXT 30 10000"
 				if [[ ! -f ${seqX}.$EXT-${seqY}.$EXT.mat ]]; then
+					
 					$BINDIR/run_and_plot_chromeister.sh $DIR/${seqX}.$EXT $DIR2/${seqY}.$EXT $KMER $DIM
-					Rscript $BINDIR/compute_score.R $seqX.$EXT-$seqY.$EXT.mat > $seqX.$EXT-$seqY.$EXT.scr
+					Rscript $BINDIR/compute_score.R $seqX.$EXT-$seqY.$EXT.mat > $seqX.$EXT-$seqY.$EXT.scr.txt
 				fi
 			
-		fi
 	done
 done
