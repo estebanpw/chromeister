@@ -29,7 +29,7 @@ USAGE       Usage is described by calling ./CHROMEISTER --help
 
 uint64_t custom_kmer = 12; // Defined as external in structs.h
 
-void init_args(int argc, char ** av, FILE ** query, FILE ** database, FILE ** out_database, uint64_t * custom_kmer, uint64_t * dimension, unsigned char * filtering);
+void init_args(int argc, char ** av, FILE ** query, FILE ** database, FILE ** out_database, uint64_t * custom_kmer, uint64_t * dimension, uint64_t * max_differences);
 
 int main(int argc, char ** av){
     
@@ -41,19 +41,17 @@ int main(int argc, char ** av){
     //query to read kmers from, database to find seeds
     FILE * query = NULL, * database = NULL, * out_database = NULL;
     uint64_t dimension = 1000; // Default 1000 * 1000
-    unsigned char filtering = 0; // Default is do not filter
+    uint64_t max_differences = 0; // Default max number of wrong hashes
     
     
-    init_args(argc, av, &query, &database, &out_database, &custom_kmer, &dimension, &filtering);
+    init_args(argc, av, &query, &database, &out_database, &custom_kmer, &dimension, &max_differences);
+
 
     unsigned char char_converter[91];
     char_converter[(unsigned char)'A'] = 0;
     char_converter[(unsigned char)'C'] = 1;
     char_converter[(unsigned char)'G'] = 2;
     char_converter[(unsigned char)'T'] = 3;
-
-    long double score = 0.0; // To compute the accumulated score
-    uint64_t n_hits = 0;        // Total number of hits found
 
     
     //Variables to account for positions
@@ -175,7 +173,9 @@ int main(int argc, char ** av){
 
                         pointer->pos = current_len;
 
-                        pointer->extended_hash = hashOfWord(&curr_kmer[FIXED_K], custom_kmer - FIXED_K);
+                        //pointer->extended_hash = hashOfWord(&curr_kmer[FIXED_K], FIXED_K);
+
+                        decomposed_hash_of_word(&curr_kmer[0], pointer->decomp_hash, custom_kmer);
 
                         pointer->next = NULL;
 
@@ -193,7 +193,8 @@ int main(int argc, char ** av){
                         pointer = getNewLocationllpos(mp, &n_pools_used);
 
                         pointer->pos = current_len;
-                        pointer->extended_hash = hashOfWord(&curr_kmer[FIXED_K], custom_kmer - FIXED_K);
+                        //pointer->extended_hash = hashOfWord(&curr_kmer[FIXED_K], FIXED_K);
+                        decomposed_hash_of_word(&curr_kmer[0], pointer->decomp_hash, custom_kmer);
                         pointer->next = aux;
 
                     }
@@ -239,7 +240,6 @@ int main(int argc, char ** av){
     //Print info
     fprintf(stdout, "[INFO] Generating hits\n");   
 
-    uint64_t keep_db_size = current_len;
     double pixel_size_db = (double) dimension / (double) current_len;
     double ratio_db = (double) current_len / dimension;
 
@@ -287,7 +287,7 @@ int main(int argc, char ** av){
                     
                     ++current_len;
                     if(current_len % a_hundreth == 0){ 
-                        printf("%"PRIu64"%%..", 1+100*current_len/aprox_len_query); 
+                        fprintf(stdout, "%"PRIu64"%%..", 1+100*current_len/aprox_len_query); 
                         //printf("%"PRIu64"%%..wasted: (%e) (%e)", 1+100*pos_in_query/aprox_len_query, (double)(wasted_cycles_forward)/CLOCKS_PER_SEC, (double)(wasted_cycles_reverse)/CLOCKS_PER_SEC); 
                         fflush(stdout);
                     }
@@ -322,9 +322,12 @@ int main(int argc, char ** av){
 
 
 
-                        uint64_t hash_forward, hash_reverse;
-                        hash_forward = hashOfWord(&curr_kmer[FIXED_K], custom_kmer - FIXED_K);
-                        hash_reverse = hashOfWord(&reverse_kmer[FIXED_K], custom_kmer - FIXED_K);
+                        //uint64_t hash_forward, hash_reverse;
+                        //hash_forward = hashOfWord(&curr_kmer[FIXED_K], custom_kmer - FIXED_K);
+                        //hash_reverse = hashOfWord(&reverse_kmer[FIXED_K], custom_kmer - FIXED_K);
+                        unsigned char hash_forward[MAX_DECOMP_HASH], hash_reverse[MAX_DECOMP_HASH];
+                        decomposed_hash_of_word(&curr_kmer[0], &hash_forward[0], custom_kmer);
+                        decomposed_hash_of_word(&reverse_kmer[0], &hash_reverse[0], custom_kmer);
 
                         
 
@@ -342,9 +345,9 @@ int main(int argc, char ** av){
                         
 
                         while(aux != NULL){
-                            
 
-                            if(aux->extended_hash == hash_forward){
+                            if(xor_decomposed_hash(aux->decomp_hash, hash_forward, custom_kmer) <= max_differences){
+                            //if(aux->extended_hash == hash_forward){
 
 
                                 // begin = clock();
@@ -398,7 +401,9 @@ int main(int argc, char ** av){
 
                         while(aux != NULL){                          
                             
-                            if(aux->extended_hash == hash_reverse){
+
+                            if(xor_decomposed_hash(aux->decomp_hash, hash_reverse, custom_kmer) <= max_differences){
+                            //if(aux->extended_hash == hash_reverse){
                                 // printf("enter\n");
                                 // // begin = clock();
                                 
@@ -572,7 +577,7 @@ int main(int argc, char ** av){
     return 0;
 }
 
-void init_args(int argc, char ** av, FILE ** query, FILE ** database, FILE ** out_database, uint64_t * custom_kmer, uint64_t * dimension, unsigned char * filtering){
+void init_args(int argc, char ** av, FILE ** query, FILE ** database, FILE ** out_database, uint64_t * custom_kmer, uint64_t * dimension, uint64_t * max_differences){
 
     int pNum = 0;
     while(pNum < argc){
@@ -582,11 +587,11 @@ void init_args(int argc, char ** av, FILE ** query, FILE ** database, FILE ** ou
             fprintf(stdout, "OPTIONAL:\n");
             fprintf(stdout, "           -kmer       [Integer:   k>1 (default 12)]\n");
             fprintf(stdout, "           -dimension  Size of the output [Integer:   d>0 (default 1000)]\n");
+            fprintf(stdout, "           -diffs      Maximum number of different 4-mers in a hit (default 0)\n");
             fprintf(stdout, "           -out        [File path]\n");
-            fprintf(stdout, "           --filter     Enables filtering\n");
             fprintf(stdout, "           --help      Shows help for program usage\n");
             fprintf(stdout, "\n");
-            fprintf(stdout, "PLEASE NOTICE: The reverse complementary is calculated for the QUERY.");
+            fprintf(stdout, "PLEASE NOTICE: The reverse complementary is calculated for the QUERY.\n");
             exit(1);
         }
         if(strcmp(av[pNum], "-query") == 0){
@@ -603,14 +608,16 @@ void init_args(int argc, char ** av, FILE ** query, FILE ** database, FILE ** ou
         }
         if(strcmp(av[pNum], "-kmer") == 0){
             *custom_kmer = (uint64_t) atoi(av[pNum+1]);
-            if(*custom_kmer < 2) terror("K-mer size must be larger than 1");
+            if(*custom_kmer < BYTES_IN_MER) terror("K-mer size must be larger than 4");
+            if(*custom_kmer % BYTES_IN_MER != 0) terror("K-mer size must be a multiple of 4");
+
         }
         if(strcmp(av[pNum], "-dimension") == 0){
             *dimension = (uint64_t) atoi(av[pNum+1]);
             if(*dimension < 1) terror("Dimension must be a positive integer");
         }
-        if(strcmp(av[pNum], "--filter") == 0){
-            *filtering = 1;
+        if(strcmp(av[pNum], "-diffs") == 0){
+            *max_differences = (uint64_t) atoi(av[pNum+1]);
         }
         pNum++;
     }

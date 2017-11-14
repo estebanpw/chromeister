@@ -123,6 +123,25 @@ uint64_t hashOfWord(const unsigned char * word, uint32_t k){
     return value;
 }
 
+void decomposed_hash_of_word(const unsigned char * word, unsigned char * vector, uint32_t k){
+    uint64_t jIdx;
+    for(jIdx=0;jIdx<k/BYTES_IN_MER;jIdx++){
+        vector[jIdx] = (unsigned char) quick_pow4byLetter(0, (char) word[jIdx*BYTES_IN_MER]);
+        vector[jIdx] += (unsigned char) quick_pow4byLetter(1, (char) word[jIdx*BYTES_IN_MER+1]);
+        vector[jIdx] += (unsigned char) quick_pow4byLetter(2, (char) word[jIdx*BYTES_IN_MER+2]);
+        vector[jIdx] += (unsigned char) quick_pow4byLetter(3, (char) word[jIdx*BYTES_IN_MER+3]);
+    }
+}
+
+uint64_t xor_decomposed_hash(unsigned char * vector1, unsigned char * vector2, uint32_t k){
+    uint64_t jIdx;
+    uint64_t diffs = 0;
+    for(jIdx=0;jIdx<k/BYTES_IN_MER;jIdx++){
+        diffs += (uint64_t) ((vector1[jIdx] ^ vector2[jIdx]) & 0x1);
+    }
+    return diffs;
+}
+
 uint64_t asciiToUint64(const char *text){
 	uint64_t number=0;
 

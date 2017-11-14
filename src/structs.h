@@ -20,6 +20,8 @@
 #define POOL_SIZE 12500000 // 1 GB if 16 bytes
 #define MAX_MEM_POOLS 256 
 
+#define BYTES_IN_MER 4
+#define MAX_DECOMP_HASH 64
 #define FALSE 0
 #define TRUE 1
 
@@ -29,6 +31,7 @@ extern uint64_t custom_kmer;
 typedef struct linked_list_pos{
     uint64_t pos;
     uint64_t extended_hash;
+    unsigned char decomp_hash[MAX_DECOMP_HASH]; // Fits up to MAX_DECOMP_HASH*4 letters = 256 length kmer
     struct linked_list_pos * next;
 } llpos;
 
