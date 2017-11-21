@@ -237,9 +237,7 @@ int main(int argc, char ** av){
 
     
     
-    //Print info
-    fprintf(stdout, "[INFO] Generating hits\n");   
-
+    
     double pixel_size_db = (double) dimension / (double) current_len;
     double ratio_db = (double) current_len / dimension;
 
@@ -261,6 +259,210 @@ int main(int argc, char ** av){
     
     fprintf(stdout, "[INFO] Ratios: Q [%e] D [%e]. Lenghts: Q [%"PRIu64"] D [%"PRIu64"]\n", ratio_query, ratio_db, aprox_len_query, current_len);
     fprintf(stdout, "[INFO] Pixel size: Q [%e] D [%e].\n", pixel_size_query, pixel_size_db);
+
+
+    fprintf(stdout, "[INFO] Computing absolute hit numbers.\n");
+
+
+    current_len = 0;
+
+    llpos * the_original_hit;
+
+    //To force reading from the buffer
+    idx = READBUF + 1;
+    c = buffered_fgetc(temp_seq_buffer, &idx, &r, query);    
+    
+    while((!feof(query) || (feof(query) && idx < r))){
+
+        if(c == '>'){
+            word_size = 0;
+            word_size_rev = custom_kmer-1;
+            
+
+
+
+            while(c != '\n'){ c = buffered_fgetc(temp_seq_buffer, &idx, &r, query); } //Skip ID
+                
+
+            while(c != '>' && (!feof(query) || (feof(query) && idx < r))){ //Until next id
+                c = buffered_fgetc(temp_seq_buffer, &idx, &r, query);
+                c = toupper(c);
+                if(c == 'A' || c == 'C' || c == 'G' || c == 'T'){
+                    
+                    ++current_len;
+                    if(current_len % a_hundreth == 0){ 
+                        fprintf(stdout, "%"PRIu64"%%..", 1+100*current_len/aprox_len_query); 
+                        //printf("%"PRIu64"%%..wasted: (%e) (%e)", 1+100*pos_in_query/aprox_len_query, (double)(wasted_cycles_forward)/CLOCKS_PER_SEC, (double)(wasted_cycles_reverse)/CLOCKS_PER_SEC); 
+                        fflush(stdout);
+                    }
+                    // if(pos_in_query % 500000 == 0){
+                    //     fprintf(stdout, "[INFO] Query aprox length %"PRIu64". I have done: %"PRIu64" and time= %e seconds\n", aprox_len_query, pos_in_query, (double)(clock()-begin)/CLOCKS_PER_SEC);
+                    //     begin = clock();
+                    // } 
+                    curr_kmer[word_size] = (unsigned char) c;
+                    ++word_size;
+
+                    switch(c){
+                        case ('A'): reverse_kmer[word_size_rev] = (unsigned)'T';
+                        break;
+                        case ('C'): reverse_kmer[word_size_rev] = (unsigned)'G';
+                        break;
+                        case ('G'): reverse_kmer[word_size_rev] = (unsigned)'C';
+                        break;
+                        case ('T'): reverse_kmer[word_size_rev] = (unsigned)'A';
+                        break;
+                    }
+                    if(word_size_rev != 0) --word_size_rev;
+
+
+
+                    
+                    if(word_size == custom_kmer){
+
+
+			
+                        aux = ct->table[char_converter[curr_kmer[0]]][char_converter[curr_kmer[1]]][char_converter[curr_kmer[2]]]
+                        [char_converter[curr_kmer[3]]][char_converter[curr_kmer[4]]][char_converter[curr_kmer[5]]]
+                        [char_converter[curr_kmer[6]]][char_converter[curr_kmer[7]]][char_converter[curr_kmer[8]]]
+                        [char_converter[curr_kmer[9]]][char_converter[curr_kmer[10]]][char_converter[curr_kmer[11]]];
+
+                        the_original_hit = aux;
+
+
+
+                        //uint64_t hash_forward, hash_reverse;
+                        //hash_forward = hashOfWord(&curr_kmer[FIXED_K], custom_kmer - FIXED_K);
+                        //hash_reverse = hashOfWord(&reverse_kmer[FIXED_K], custom_kmer - FIXED_K);
+                        unsigned char hash_forward[MAX_DECOMP_HASH], hash_reverse[MAX_DECOMP_HASH];
+                        decomposed_hash_of_word(&curr_kmer[0], &hash_forward[0], custom_kmer);
+                        decomposed_hash_of_word(&reverse_kmer[0], &hash_reverse[0], custom_kmer);
+
+                        
+
+                        /*
+                        uint64_t w;
+                        for(w=0;w<custom_kmer;w++){
+                            printf("%c", (char) curr_kmer[w]);
+                        }
+                        printf("\n");
+                        for(w=0;w<custom_kmer;w++){
+                            printf("%c", (char) reverse_kmer[w]);
+                        }
+                        printf("---------------\n"); getchar();
+                        */
+                        
+
+                        while(aux != NULL){
+
+                            if(xor_decomposed_hash(aux->decomp_hash, hash_forward, custom_kmer) <= max_differences){
+                            //if(aux->extended_hash == hash_forward){
+
+                                the_original_hit->hits_count++;
+                                
+                            }
+                            aux = aux->next;
+                        }
+
+                        
+
+                        aux = ct->table[char_converter[reverse_kmer[0]]][char_converter[reverse_kmer[1]]][char_converter[reverse_kmer[2]]]
+                        [char_converter[reverse_kmer[3]]][char_converter[reverse_kmer[4]]][char_converter[reverse_kmer[5]]]
+                        [char_converter[reverse_kmer[6]]][char_converter[reverse_kmer[7]]][char_converter[reverse_kmer[8]]]
+                        [char_converter[reverse_kmer[9]]][char_converter[reverse_kmer[10]]][char_converter[reverse_kmer[11]]];
+
+                        the_original_hit = aux;
+
+                        while(aux != NULL){                          
+                            
+
+                            if(xor_decomposed_hash(aux->decomp_hash, hash_reverse, custom_kmer) <= max_differences){
+                            //if(aux->extended_hash == hash_reverse){
+
+                                the_original_hit->hits_count++;                            
+                                
+                            }
+                            
+                            aux = aux->next;
+                        }
+
+                        // Overlapping
+                        
+                        // memmove(&curr_kmer[0], &curr_kmer[1], custom_kmer-1);
+                        // memmove(&reverse_kmer[1], &reverse_kmer[0], custom_kmer-1);
+                        // --word_size;
+
+                        // Non overlapping
+                        word_size = 0;
+                        word_size_rev = custom_kmer-1;
+                    }
+
+
+            
+                    // if(pos_in_query == READBUF*n_realloc_database){ 
+                    //     n_realloc_database++; data_query.sequences = (unsigned char *) realloc(data_query.sequences, READBUF*n_realloc_database*sizeof(unsigned char));
+                    //     if(data_query.sequences == NULL) terror("Could not reallocate temporary query");
+                    // }
+                }else{
+                    if(c != '\n' && c != '>'){
+                        word_size = 0;
+                        word_size_rev = custom_kmer-1;
+                        ++current_len;
+                        // data_query.sequences[pos_in_query++] = (unsigned char) 'N'; //Convert to N
+                        // if(pos_in_query == READBUF*n_realloc_database){ 
+                        //     n_realloc_database++; data_query.sequences = (unsigned char *) realloc(data_query.sequences, READBUF*n_realloc_database*sizeof(unsigned char));
+                        //     if(data_query.sequences == NULL) terror("Could not reallocate temporary query");
+                        // }
+                    }
+                }
+            }
+        }else{
+            c = buffered_fgetc(temp_seq_buffer, &idx, &r, query);    
+        }
+        
+    }
+
+    
+
+    /// Out
+
+    uint64_t hits_mean = 0;
+    uint64_t table_size = 0;
+
+    uint64_t w0,w1,w2,w3,w4,w5,w6,w7,w8,w9,w10,w11;
+    for(w0=0;w0<4;w0++){
+        for(w1=0;w1<4;w1++){
+            for(w2=0;w2<4;w2++){
+                for(w3=0;w3<4;w3++){
+                    for(w4=0;w4<4;w4++){
+                        for(w5=0;w5<4;w5++){
+                            for(w6=0;w6<4;w6++){
+                                for(w7=0;w7<4;w7++){
+                                    for(w8=0;w8<4;w8++){
+                                        for(w9=0;w9<4;w9++){
+                                            for(w10=0;w10<4;w10++){
+                                                for(w11=0;w11<4;w11++){
+                                                    hits_mean += ct->table[w0][w1][w2][w3][w4][w5][w6][w7][w8][w9][w10][w11]->hits_count;
+                                                    ++table_size;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    hits_mean = hits_mean/table_size;
+
+    fprintf(stdout, "[INFO] Average hit count is %"PRIu64" on a size of %"PRIu64".\n", hits_mean, table_size);
+
+    fprintf(stdout, "[INFO] Generating hits.\n");
+
+
 
     current_len = 0;
 
@@ -314,11 +516,14 @@ int main(int argc, char ** av){
                     if(word_size == custom_kmer){
 
 
+                        
 			
                         aux = ct->table[char_converter[curr_kmer[0]]][char_converter[curr_kmer[1]]][char_converter[curr_kmer[2]]]
                         [char_converter[curr_kmer[3]]][char_converter[curr_kmer[4]]][char_converter[curr_kmer[5]]]
                         [char_converter[curr_kmer[6]]][char_converter[curr_kmer[7]]][char_converter[curr_kmer[8]]]
                         [char_converter[curr_kmer[9]]][char_converter[curr_kmer[10]]][char_converter[curr_kmer[11]]];
+
+                        the_original_hit = aux;
 
 
 
@@ -344,7 +549,7 @@ int main(int argc, char ** av){
                         */
                         
 
-                        while(aux != NULL){
+                        while(aux != NULL && the_original_hit->hits_count < hits_mean){
 
                             if(xor_decomposed_hash(aux->decomp_hash, hash_forward, custom_kmer) <= max_differences){
                             //if(aux->extended_hash == hash_forward){
@@ -399,7 +604,10 @@ int main(int argc, char ** av){
                         [char_converter[reverse_kmer[6]]][char_converter[reverse_kmer[7]]][char_converter[reverse_kmer[8]]]
                         [char_converter[reverse_kmer[9]]][char_converter[reverse_kmer[10]]][char_converter[reverse_kmer[11]]];
 
-                        while(aux != NULL){                          
+
+                        the_original_hit = aux;
+
+                        while(aux != NULL && the_original_hit->hits_count < hits_mean){                          
                             
 
                             if(xor_decomposed_hash(aux->decomp_hash, hash_reverse, custom_kmer) <= max_differences){

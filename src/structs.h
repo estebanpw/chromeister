@@ -32,6 +32,7 @@ typedef struct linked_list_pos{
     uint64_t pos;
     uint64_t extended_hash;
     unsigned char decomp_hash[MAX_DECOMP_HASH]; // Fits up to MAX_DECOMP_HASH*4 letters = 256 length kmer
+    uint64_t hits_count;
     struct linked_list_pos * next;
 } llpos;
 
