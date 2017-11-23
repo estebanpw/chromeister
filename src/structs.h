@@ -21,7 +21,7 @@
 #define MAX_MEM_POOLS 256 
 
 #define BYTES_IN_MER 4
-#define MAX_DECOMP_HASH 64
+#define MAX_DECOMP_HASH 10
 #define FALSE 0
 #define TRUE 1
 

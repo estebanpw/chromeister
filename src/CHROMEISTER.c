@@ -425,7 +425,9 @@ int main(int argc, char ** av){
 
     /// Out
 
-    uint64_t hits_mean = 0;
+    fprintf(stdout, "Scanning hits table.\n");
+
+    uint64_t total_hits = 0;
     uint64_t table_size = 0;
 
     uint64_t w0,w1,w2,w3,w4,w5,w6,w7,w8,w9,w10,w11;
@@ -441,8 +443,11 @@ int main(int argc, char ** av){
                                         for(w9=0;w9<4;w9++){
                                             for(w10=0;w10<4;w10++){
                                                 for(w11=0;w11<4;w11++){
-                                                    hits_mean += ct->table[w0][w1][w2][w3][w4][w5][w6][w7][w8][w9][w10][w11]->hits_count;
-                                                    ++table_size;
+                                                    if(ct->table[w0][w1][w2][w3][w4][w5][w6][w7][w8][w9][w10][w11] != NULL && ct->table[w0][w1][w2][w3][w4][w5][w6][w7][w8][w9][w10][w11]->hits_count > 0){
+                                                        total_hits += ct->table[w0][w1][w2][w3][w4][w5][w6][w7][w8][w9][w10][w11]->hits_count;
+                                                        ++table_size;
+                                                    }
+                                                    
                                                 }
                                             }
                                         }
@@ -456,9 +461,10 @@ int main(int argc, char ** av){
         }
     }
 
-    hits_mean = hits_mean/table_size;
+    
+    double average_hit = (double) total_hits / (double) table_size;
 
-    fprintf(stdout, "[INFO] Average hit count is %"PRIu64" on a size of %"PRIu64".\n", hits_mean, table_size);
+    fprintf(stdout, "[INFO] Total hit count is %"PRIu64" on a size of %"PRIu64" Avg = %e.\n", total_hits, table_size, average_hit);
 
     fprintf(stdout, "[INFO] Generating hits.\n");
 
@@ -469,6 +475,7 @@ int main(int argc, char ** av){
     //To force reading from the buffer
     idx = READBUF + 1;
     c = buffered_fgetc(temp_seq_buffer, &idx, &r, query);    
+    fseek(query, 0, SEEK_SET);
     
     while((!feof(query) || (feof(query) && idx < r))){
 
@@ -549,7 +556,8 @@ int main(int argc, char ** av){
                         */
                         
 
-                        while(aux != NULL && the_original_hit->hits_count < hits_mean){
+                        while(aux != NULL && the_original_hit->hits_count < (uint64_t)average_hit){
+
 
                             if(xor_decomposed_hash(aux->decomp_hash, hash_forward, custom_kmer) <= max_differences){
                             //if(aux->extended_hash == hash_forward){
@@ -607,7 +615,7 @@ int main(int argc, char ** av){
 
                         the_original_hit = aux;
 
-                        while(aux != NULL && the_original_hit->hits_count < hits_mean){                          
+                        while(aux != NULL && the_original_hit->hits_count < (uint64_t)average_hit){                          
                             
 
                             if(xor_decomposed_hash(aux->decomp_hash, hash_reverse, custom_kmer) <= max_differences){
