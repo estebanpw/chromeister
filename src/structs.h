@@ -20,6 +20,8 @@
 #define POOL_SIZE 12500000 // 1 GB if 16 bytes
 #define MAX_MEM_POOLS 256 
 
+#define NHASH 6400
+
 #define BYTES_IN_MER 4
 #define MAX_DECOMP_HASH 10
 #define FALSE 0
@@ -27,7 +29,7 @@
 
 extern uint64_t custom_kmer;
 
-extern uint64_t hash_functions[3200];
+extern uint64_t hash_functions[NHASH];
 
 typedef struct linked_list_kmer{
     unsigned char kmer[32];
