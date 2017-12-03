@@ -954,6 +954,9 @@ typedef struct static_table{
                     }else{
                         // It existed, check that it is the same and hence no collision
                         // If it is the last hash function, then let it happen with errors
+                        if(st.second_level[i][c_hash].full_hash != aux_kmer->hash){
+                            solved_collisions = FALSE;
+                        }
                         if(current_picked_hash < n_hash_functions && st.second_level[i][c_hash].full_hash != aux_kmer->hash){
                             // It already exists, try next hashing function
                             reset_llpos(mp, &n_pools_used, computed_for_reset);
