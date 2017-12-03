@@ -27,14 +27,34 @@
 
 extern uint64_t custom_kmer;
 
+extern uint64_t hash_functions[3200];
+
+typedef struct linked_list_kmer{
+    unsigned char kmer[32];
+    uint64_t hash;
+    uint64_t pos;
+    struct linked_list_kmer * next;
+} llpos_kmer;
+
 //Struct for linked list of positions
 typedef struct linked_list_pos{
     uint64_t pos;
-    uint64_t extended_hash;
-    unsigned char decomp_hash[MAX_DECOMP_HASH]; // Fits up to MAX_DECOMP_HASH*4 letters = 256 length kmer
-    uint64_t hits_count;
     struct linked_list_pos * next;
 } llpos;
+
+typedef struct def_pos{
+    uint64_t full_hash;
+    llpos * next;
+} Def_pos;
+
+typedef struct static_table{
+    llpos_kmer * table;
+    uint64_t * count;
+    uint64_t * picked_hash;
+    Def_pos ** second_level;
+
+} Static_table;
+
 
 //Struct for memory pool por lists
 typedef struct mempool_l{
@@ -42,6 +62,11 @@ typedef struct mempool_l{
     uint64_t current;
 } Mempool_l;
 
+// Mempool for lists of kmers
+typedef struct mempool_l_kmer{
+    llpos_kmer * base;
+    uint64_t current;
+} Mempool_l_kmer;
 
 //Struct for a whole sequence(s) data
 typedef struct seqinfo{

@@ -43,4 +43,6 @@ unsigned char complement(unsigned char c);
 
 void inplace_reverse_and_complement(unsigned char *d, uint64_t l);
 
+uint64_t universal_hash_function(uint64_t picked_hash, const unsigned char * word, unsigned char * converter, uint64_t m_prime);
+
 #endif /* COMMON_FUNCTIONS_H */

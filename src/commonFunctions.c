@@ -114,6 +114,8 @@ uint64_t quick_pow4byLetter(uint64_t n, const char c){
     return 0;
 }
 
+
+
 uint64_t hashOfWord(const unsigned char * word, uint32_t k){
     
     uint64_t value = 0, jIdx;
@@ -191,4 +193,13 @@ void inplace_reverse_and_complement(unsigned char *d, uint64_t l){
         //printf("eeee: %d", (int)d[i]);
         d[i] = complement(d[i]);
     }
+}
+
+uint64_t universal_hash_function(uint64_t picked_hash, const unsigned char * word, unsigned char * converter, uint64_t m_prime){
+    uint64_t i;
+    uint64_t hash_value = 0;
+    for(i=0; i<custom_kmer; i++){
+        hash_value += hash_functions[picked_hash*32 + i]*converter[word[i]];
+    }
+    return (hash_value % m_prime);
 }

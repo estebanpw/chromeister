@@ -40,8 +40,15 @@ typedef struct {
 /*
     Nucleotides matching function
 */
-inline int64_t compare_letters(unsigned char a, unsigned char b);
+int64_t compare_letters(unsigned char a, unsigned char b);
 
+
+/**
+
+Reset a number of llpos from a pool
+
+*/
+void reset_llpos(Mempool_l * mp, uint64_t * n_pools_used, uint64_t n_reset_llpos);
 /**
  * Initialize the memory pool to later retrieve individual memory addresses for llpos
  * 
@@ -54,3 +61,10 @@ void init_mem_pool_llpos(Mempool_l * mp);
  */
 llpos * getNewLocationllpos(Mempool_l * mp, uint64_t * n_pools_used);
 
+/*
+llpos for kmers
+*/
+
+llpos_kmer * getNewLocationllpos_kmer(Mempool_l_kmer * mp, uint64_t * n_pools_used);
+
+void init_mem_pool_llpos_kmer(Mempool_l_kmer * mp);
