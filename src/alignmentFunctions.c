@@ -12,6 +12,20 @@
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 #define MIN(x, y) (((x) <= (y)) ? (x) : (y))
 
+/*
+__m128i mullo_epi8(__m128i a, __m128i b){
+    // unpack and multiply
+    __m128i dst_even = _mm_mullo_epi16(a, b);
+    __m128i dst_odd = _mm_mullo_epi16(_mm_srli_epi16(a, 8),_mm_srli_epi16(b, 8));
+    // repack
+#ifdef __AVX2__
+    // only faster if have access to VPBROADCASTW
+    return _mm_or_si128(_mm_slli_epi16(dst_odd, 8), _mm_and_si128(dst_even, _mm_set1_epi16(0xFF)));
+#else
+    return _mm_or_si128(_mm_slli_epi16(dst_odd, 8), _mm_srli_epi16(_mm_slli_epi16(dst_even,8), 8));
+#endif
+}
+*/
 
 int64_t compare_letters(unsigned char a, unsigned char b){
     if(a != (unsigned char) 'N' && a != (unsigned char) '>') return (a == b) ? POINT : -POINT;
@@ -21,12 +35,15 @@ int64_t compare_letters(unsigned char a, unsigned char b){
 void reset_llpos(Mempool_l * mp, uint64_t * n_pools_used, uint64_t n_reset_llpos){
     if(mp[*n_pools_used].current >= n_reset_llpos){
         mp[*n_pools_used].current -= n_reset_llpos;
+        memset(&mp[*n_pools_used].base[mp[*n_pools_used].current], 0x0, n_reset_llpos*sizeof(llpos));
     }else{
-        if(*n_pools_used == 0){ mp[*n_pools_used].current = 0; return; }
+        if(*n_pools_used == 0){ mp[*n_pools_used].current = 0; memset(&mp[0].base[0], 0x0, n_reset_llpos*sizeof(llpos)); return; }
 
+        memset(&mp[*n_pools_used].base[0], 0x0, n_reset_llpos*sizeof(llpos));
         n_reset_llpos -= mp[*n_pools_used].current;
         --(*n_pools_used);
         mp[*n_pools_used].current -= n_reset_llpos;
+        memset(&mp[*n_pools_used].base[mp[*n_pools_used].current], 0x0, n_reset_llpos*sizeof(llpos));
     }
 }
 

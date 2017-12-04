@@ -29,7 +29,7 @@
 
 extern uint64_t custom_kmer;
 
-extern uint64_t hash_functions[NHASH];
+extern uint32_t hash_functions[NHASH];
 
 typedef struct linked_list_kmer{
     unsigned char kmer[32];
@@ -46,6 +46,8 @@ typedef struct linked_list_pos{
 
 typedef struct def_pos{
     uint64_t full_hash;
+    uint64_t count_x;
+    uint64_t count_y;
     llpos * next;
 } Def_pos;
 
@@ -56,6 +58,12 @@ typedef struct static_table{
     Def_pos ** second_level;
 
 } Static_table;
+
+typedef struct previously_hashed_table{
+    uint32_t hash_first_level;
+    uint32_t hash_second_level;
+    uint64_t pos;
+} Previously_hashed_table;
 
 
 //Struct for memory pool por lists

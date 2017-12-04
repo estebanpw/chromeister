@@ -195,11 +195,39 @@ void inplace_reverse_and_complement(unsigned char *d, uint64_t l){
     }
 }
 
-uint64_t universal_hash_function(uint64_t picked_hash, const unsigned char * word, unsigned char * converter, uint64_t m_prime){
+uint32_t universal_hash_function(uint64_t picked_hash, const unsigned char * word, unsigned char * converter, uint32_t m_prime){
     uint64_t i;
-    uint64_t hash_value = 0;
+    uint32_t hash_value = 0;
+    uint32_t final_hash = picked_hash * 32;
+    
     for(i=0; i<custom_kmer; i++){
-        hash_value += hash_functions[picked_hash*32 + i]*converter[word[i]];
+        hash_value += hash_functions[final_hash + i]*(uint32_t)converter[word[i]];
     }
+    /*
+    hash_value += hash_functions[picked_hash*32 + 0]*(uint32_t)converter[word[0]];
+    hash_value += hash_functions[picked_hash*32 + 1]*(uint32_t)converter[word[1]];
+    hash_value += hash_functions[picked_hash*32 + 2]*(uint32_t)converter[word[2]];
+    hash_value += hash_functions[picked_hash*32 + 3]*(uint32_t)converter[word[3]];
+    hash_value += hash_functions[picked_hash*32 + 4]*(uint32_t)converter[word[4]];
+    hash_value += hash_functions[picked_hash*32 + 5]*(uint32_t)converter[word[5]];
+    hash_value += hash_functions[picked_hash*32 + 6]*(uint32_t)converter[word[6]];
+    hash_value += hash_functions[picked_hash*32 + 7]*(uint32_t)converter[word[7]];
+    hash_value += hash_functions[picked_hash*32 + 8]*(uint32_t)converter[word[8]];
+    hash_value += hash_functions[picked_hash*32 + 9]*(uint32_t)converter[word[9]];
+    hash_value += hash_functions[picked_hash*32 + 10]*(uint32_t)converter[word[10]];
+    hash_value += hash_functions[picked_hash*32 + 11]*(uint32_t)converter[word[11]];
+    hash_value += hash_functions[picked_hash*32 + 12]*(uint32_t)converter[word[12]];
+    hash_value += hash_functions[picked_hash*32 + 13]*(uint32_t)converter[word[13]];
+    hash_value += hash_functions[picked_hash*32 + 14]*(uint32_t)converter[word[14]];
+    hash_value += hash_functions[picked_hash*32 + 15]*(uint32_t)converter[word[15]];
+    hash_value += hash_functions[picked_hash*32 + 16]*(uint32_t)converter[word[16]];
+    hash_value += hash_functions[picked_hash*32 + 17]*(uint32_t)converter[word[17]];
+    hash_value += hash_functions[picked_hash*32 + 18]*(uint32_t)converter[word[18]];
+    hash_value += hash_functions[picked_hash*32 + 19]*(uint32_t)converter[word[19]];
+    hash_value += hash_functions[picked_hash*32 + 20]*(uint32_t)converter[word[20]];
+    hash_value += hash_functions[picked_hash*32 + 21]*(uint32_t)converter[word[21]];
+    hash_value += hash_functions[picked_hash*32 + 22]*(uint32_t)converter[word[22]];
+    hash_value += hash_functions[picked_hash*32 + 23]*(uint32_t)converter[word[23]];
+    */
     return (hash_value % m_prime);
 }

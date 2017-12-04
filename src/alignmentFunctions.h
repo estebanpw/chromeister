@@ -1,6 +1,9 @@
 #define QF_LAMBDA 0.275
 #define QF_KARLIN 0.333
 
+//#include <immintrin.h>	// Need this for SSE compiler intrinsics
+
+
 typedef struct container{
     llpos * table[4][4][4][4][4][4][4][4][4][4][4][4];
 } Container;
@@ -43,6 +46,7 @@ typedef struct {
 int64_t compare_letters(unsigned char a, unsigned char b);
 
 
+//__m128i mullo_epi8(__m128i a, __m128i b);
 /**
 
 Reset a number of llpos from a pool
