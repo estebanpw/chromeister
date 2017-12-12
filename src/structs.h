@@ -33,11 +33,12 @@ extern uint64_t custom_kmer;
 //Struct for linked list of positions
 typedef struct linked_list_pos{
     uint64_t pos;
-    uint64_t extended_hash;
-    unsigned char decomp_hash[MAX_DECOMP_HASH]; // Fits up to MAX_DECOMP_HASH*4 letters = 256 length kmer
-    uint64_t hits_count;
+    //uint64_t extended_hash;
+    //unsigned char decomp_hash[MAX_DECOMP_HASH]; // Fits up to MAX_DECOMP_HASH*4 letters = 256 length kmer
+    //uint64_t hits_count;
     struct linked_list_pos * next;
 } llpos;
+
 
 // An AVL tree node
 typedef struct AVL_Node{
@@ -45,8 +46,15 @@ typedef struct AVL_Node{
     struct AVL_Node * left;
     struct AVL_Node * right;
     uint64_t height;
+    uint64_t count;
     llpos * next;
 } AVLTree;
+
+// Tuple of data 
+typedef struct tuple_hits{
+    AVLTree * root;
+    uint64_t hit_count;    
+} Tuple_hits;
 
 //Struct for memory pool por lists
 typedef struct mempool_l{
