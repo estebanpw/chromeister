@@ -54,3 +54,18 @@ void init_mem_pool_llpos(Mempool_l * mp);
  */
 llpos * getNewLocationllpos(Mempool_l * mp, uint64_t * n_pools_used);
 
+
+
+AVLTree * getNewLocationAVLTree(Mempool_AVL * mp, uint64_t * n_pools_used, uint64_t key);
+
+
+void init_mem_pool_AVL(Mempool_AVL * mp);
+
+
+AVLTree * right_rotate(AVLTree * y);
+
+AVLTree * left_rotate(AVLTree * x);
+
+AVLTree * insert_AVLTree(AVLTree * node, uint64_t key, Mempool_AVL * mp, uint64_t * n_pools_used);
+
+void pre_order(AVLTree * root);

@@ -20,9 +20,6 @@ USAGE       Usage is described by calling ./CHROMEISTER --help
 #include "structs.h"
 #include "alignmentFunctions.h"
 #include "commonFunctions.h"
-
-#define MAX(x, y) (((x) > (y)) ? (x) : (y))
-#define MIN(x, y) (((x) <= (y)) ? (x) : (y))
 #define STARTING_SEQS 1000
 #define PIECE_OF_DB_REALLOC 3200000 //half a gigabyte if divided by 8 bytes
 #define RANGE 2
@@ -35,6 +32,26 @@ int main(int argc, char ** av){
     
 
     //clock_t begin, end;
+    printf("START\n");
+    uint64_t n_pools_used_AVL = 0;
+    Mempool_AVL mp_AVL[MAX_MEM_POOLS];
+    init_mem_pool_AVL(&mp_AVL[n_pools_used_AVL]);
+    AVLTree * root;
+    printf("INSERT\n");
+    root = insert_AVLTree(root, 10, mp_AVL, &n_pools_used_AVL);
+    root = insert_AVLTree(root, 20, mp_AVL, &n_pools_used_AVL);
+    root = insert_AVLTree(root, 21, mp_AVL, &n_pools_used_AVL);
+    root = insert_AVLTree(root, 24, mp_AVL, &n_pools_used_AVL);
+    root = insert_AVLTree(root, 25, mp_AVL, &n_pools_used_AVL);
+    root = insert_AVLTree(root, 18, mp_AVL, &n_pools_used_AVL);
+    root = insert_AVLTree(root, 33, mp_AVL, &n_pools_used_AVL);
+    root = insert_AVLTree(root, 15, mp_AVL, &n_pools_used_AVL);
+    printf("DONE\n");
+
+    pre_order(root);
+
+    // REmove this
+    exit(-1);
 
     uint64_t i, j;
 

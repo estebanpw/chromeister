@@ -25,6 +25,9 @@
 #define FALSE 0
 #define TRUE 1
 
+#define MAX(x, y) (((x) > (y)) ? (x) : (y))
+#define MIN(x, y) (((x) <= (y)) ? (x) : (y))
+
 extern uint64_t custom_kmer;
 
 //Struct for linked list of positions
@@ -36,12 +39,26 @@ typedef struct linked_list_pos{
     struct linked_list_pos * next;
 } llpos;
 
+// An AVL tree node
+typedef struct AVL_Node{
+    uint64_t key;
+    struct AVL_Node * left;
+    struct AVL_Node * right;
+    uint64_t height;
+    llpos * next;
+} AVLTree;
+
 //Struct for memory pool por lists
 typedef struct mempool_l{
     llpos * base;
     uint64_t current;
 } Mempool_l;
 
+//Struct for memory pool por AVLtree
+typedef struct mempool_AVL{
+    AVLTree * base;
+    uint64_t current;
+} Mempool_AVL;
 
 //Struct for a whole sequence(s) data
 typedef struct seqinfo{
