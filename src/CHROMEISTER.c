@@ -181,12 +181,12 @@ int main(int argc, char ** av){
                     
 
                     // Non overlapping
-                    //word_size = 0;
+                    word_size = 0;
                     
 		
 		            // Overlapping
-                    memmove(&curr_kmer[0], &curr_kmer[1], custom_kmer-1);
-                    --word_size;
+                    //memmove(&curr_kmer[0], &curr_kmer[1], custom_kmer-1);
+                    //--word_size;
                 }
             }
             word_size = 0;
@@ -224,6 +224,9 @@ int main(int argc, char ** av){
     aprox_len_query = ftell(query);
     rewind(query);
 
+    Hash_holder * hash_holder_table = (Hash_holder *) calloc(2*aprox_len_query, sizeof(Hash_holder));
+    if(hash_holder_table == NULL) terror("Could not allocate hash holding table");
+
     a_hundreth = (aprox_len_query/100);
     double pixel_size_query = (double) dimension / (double) aprox_len_query;
     double ratio_query = (double) aprox_len_query / dimension;
@@ -248,6 +251,7 @@ int main(int argc, char ** av){
     //To force reading from the buffer
     idx = READBUF + 1;
     c = buffered_fgetc(temp_seq_buffer, &idx, &r, query);    
+    uint64_t c_hash_holder = 0;
     
     while((!feof(query) || (feof(query) && idx < r))){
 
@@ -307,7 +311,19 @@ int main(int argc, char ** av){
 
                         AVLTree * search = find_AVLTree(thit->root, hash_forward);
 
-                        if(search != NULL) thit->hit_count += search->count;
+                        if(search != NULL){
+                            thit->hit_count += search->count;
+                            /*
+                                typedef struct hash_holder{
+                                uint64_t hash;
+                                uint64_t pos;
+                                AVLTree * node;
+                            */
+                            hash_holder_table[c_hash_holder].pos = current_len;
+                            hash_holder_table[c_hash_holder].node = search;
+                            hash_holder_table[c_hash_holder].th = thit;
+                            ++c_hash_holder;
+                        }
 
                         
 
@@ -318,18 +334,25 @@ int main(int argc, char ** av){
 
                         search = find_AVLTree(thit->root, hash_reverse);
 
-                        if(search != NULL) thit->hit_count += search->count;
+                        if(search != NULL){
+                            
+                            thit->hit_count += search->count;
+                            hash_holder_table[c_hash_holder].pos = current_len;
+                            hash_holder_table[c_hash_holder].node = search;
+                            hash_holder_table[c_hash_holder].th = thit;
+                            ++c_hash_holder;
+                        }
 
 
                         // Overlapping
                         
-                        //memmove(&curr_kmer[0], &curr_kmer[1], custom_kmer-1);
-                        //memmove(&reverse_kmer[1], &reverse_kmer[0], custom_kmer-1);
-                        //--word_size;
+                        memmove(&curr_kmer[0], &curr_kmer[1], custom_kmer-1);
+                        memmove(&reverse_kmer[1], &reverse_kmer[0], custom_kmer-1);
+                        --word_size;
 
                         // Non overlapping
-                        word_size = 0;
-                        word_size_rev = custom_kmer-1;
+                        //word_size = 0;
+                        //word_size_rev = custom_kmer-1;
                     }
                 }else{
                     if(c != '\n' && c != '>'){
@@ -393,11 +416,43 @@ int main(int argc, char ** av){
 
     fprintf(stdout, "[INFO] Generating hits.\n");
 
-    //exit(-1);
+    
 
-    current_len = 0;
+    a_hundreth = c_hash_holder/100;
+    
+    for(current_len = 0; current_len < c_hash_holder; current_len++){
+
+        if(current_len % a_hundreth == 0){ 
+            fprintf(stdout, "\r%"PRIu64"%%...", 1+100*current_len/c_hash_holder); 
+            fflush(stdout);
+        }
+
+        aux = hash_holder_table[current_len].node->next;
+
+        if(hash_holder_table[current_len].th->hit_count < (uint64_t) average_hit){
+            while(aux != NULL){
+                // Convert scale to representation
+                uint64_t redir_db = (uint64_t) (aux->pos / (ratio_db));
+                uint64_t redir_query = (uint64_t) (hash_holder_table[current_len].pos / (ratio_query));
+                double i_r = i_r_fix; double j_r = j_r_fix;
+                while((uint64_t) i_r >= 1 && (uint64_t) j_r >= 1){
+                    if((int64_t) redir_query - (int64_t) i_r > 0 && (int64_t) redir_db - (int64_t) j_r > 0){
+                        representation[(int64_t) redir_query - (int64_t) i_r][(int64_t) redir_db - (int64_t) j_r]++;
+                    }else{
+                        representation[redir_query][redir_db]++;
+                        break;
+                    }
+                    i_r -= MIN(1.0, pixel_size_query);
+                    j_r -= MIN(1.0, pixel_size_db);
+                }
+                aux = aux->next;
+            }
+        }
+    }
+
 
     //To force reading from the buffer
+    /*
     idx = READBUF + 1;
     c = buffered_fgetc(temp_seq_buffer, &idx, &r, query);    
     fseek(query, 0, SEEK_SET);
@@ -577,6 +632,7 @@ int main(int argc, char ** av){
         }
         
     }
+    */
 
     //end = clock();
 
@@ -605,6 +661,7 @@ int main(int argc, char ** av){
 
     
     //free(ct->table);
+    free(hash_holder_table);
 
     for(i=0;i<=n_pools_used_AVL;i++){
         free(mp_AVL[i].base);

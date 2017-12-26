@@ -50,11 +50,18 @@ typedef struct AVL_Node{
     llpos * next;
 } AVLTree;
 
+
 // Tuple of data 
 typedef struct tuple_hits{
     AVLTree * root;
     uint64_t hit_count;    
 } Tuple_hits;
+
+typedef struct hash_holder{
+    uint64_t pos;
+    Tuple_hits * th;
+    AVLTree * node;
+} Hash_holder;
 
 //Struct for memory pool por lists
 typedef struct mempool_l{

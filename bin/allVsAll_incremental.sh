@@ -4,14 +4,13 @@ DIR2=$2
 EXT=$3
 DIM=$4
 KMER=$5
-DIFFS=$6
 
 array=()
 x=0
 array2=()
 
-if [ $# != 6 ]; then
-	echo "***ERROR*** Use: $0 genomesDirectory1 genomesDirectory2 extension dim kmer diffs"
+if [ $# != 5 ]; then
+	echo "***ERROR*** Use: $0 genomesDirectory1 genomesDirectory2 extension dim kmer"
 	exit -1
 fi
 
@@ -45,7 +44,7 @@ do
 				#echo "$BINDIR/run_and_plot_chromeister.sh $DIR/${seqX}.$EXT $DIR/${seqY}.$EXT 30 10000"
 				if [[ ! -f ${seqX}.$EXT-${seqY}.$EXT.mat ]]; then
 					
-					$BINDIR/run_and_plot_chromeister.sh $DIR/${seqX}.$EXT $DIR2/${seqY}.$EXT $KMER $DIM $DIFFS
+					$BINDIR/run_and_plot_chromeister.sh $DIR/${seqX}.$EXT $DIR2/${seqY}.$EXT $KMER $DIM
 					Rscript $BINDIR/compute_score.R $seqX.$EXT-$seqY.$EXT.mat > $seqX.$EXT-$seqY.$EXT.scr.txt
 				fi
 			
