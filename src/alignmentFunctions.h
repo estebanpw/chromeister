@@ -45,3 +45,5 @@ llpos * find_AVLTree_llpos(AVLTree * node, uint64_t key);
 AVLTree * insert_AVLTree(AVLTree * node, uint64_t key, Mempool_AVL * mp, uint64_t * n_pools_used, uint64_t pos, Mempool_l * mp_l, uint64_t * n_pools_used_l);
 
 void pre_order(AVLTree * root);
+
+uint64_t sum_of_all_tree(AVLTree * root);

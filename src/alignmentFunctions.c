@@ -250,3 +250,15 @@ void pre_order(AVLTree * root){
         pre_order(root->right);
     }
 }
+
+
+uint64_t sum_of_all_tree(AVLTree * root){
+    uint64_t mysum = 0;
+    if(root != NULL){
+        
+        mysum = root->count;
+        mysum += sum_of_all_tree(root->left);
+        mysum += sum_of_all_tree(root->right);
+    }
+    return mysum;
+}

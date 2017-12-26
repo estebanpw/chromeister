@@ -26,7 +26,7 @@ USAGE       Usage is described by calling ./CHROMEISTER --help
 
 uint64_t custom_kmer = 12; // Defined as external in structs.h
 
-void init_args(int argc, char ** av, FILE ** query, FILE ** database, FILE ** out_database, uint64_t * custom_kmer, uint64_t * dimension, uint64_t * max_differences);
+void init_args(int argc, char ** av, FILE ** query, FILE ** database, FILE ** out_database, uint64_t * custom_kmer, uint64_t * dimension);
 
 int main(int argc, char ** av){
     
@@ -38,7 +38,7 @@ int main(int argc, char ** av){
     //if(mp == NULL) terror("Could not allocate vectors for memory pools");
     Mempool_l mp[MAX_MEM_POOLS];
     init_mem_pool_llpos(&mp[n_pools_used]);
-    llpos * aux, * pointer;
+    llpos * aux;
 
     uint64_t n_pools_used_AVL = 0;
     Mempool_AVL mp_AVL[MAX_MEM_POOLS];
@@ -60,10 +60,9 @@ int main(int argc, char ** av){
     //query to read kmers from, database to find seeds
     FILE * query = NULL, * database = NULL, * out_database = NULL;
     uint64_t dimension = 1000; // Default 1000 * 1000
-    uint64_t max_differences = 0; // Default max number of wrong hashes
     
     
-    init_args(argc, av, &query, &database, &out_database, &custom_kmer, &dimension, &max_differences);
+    init_args(argc, av, &query, &database, &out_database, &custom_kmer, &dimension);
 
 
     unsigned char char_converter[91];
@@ -135,17 +134,7 @@ int main(int argc, char ** av){
     while((!feof(database) || (feof(database) && idx < r))){
 
         if(c == '>'){
-            // data_database.n_seqs++;
-            // data_database.start_pos[data_database.n_seqs++] = pos_in_database;
             
-            // if(pos_in_database == READBUF*n_realloc_database){ 
-            //     n_realloc_database++; data_database.sequences = (unsigned char *) realloc(data_database.sequences, READBUF*n_realloc_database*sizeof(unsigned char));
-            //     if(data_database.sequences == NULL) terror("Could not reallocate temporary database");
-            // }
-
-            // if(data_database.n_seqs == INITSEQS*n_seqs_database_realloc){
-            //     n_seqs_database_realloc++; data_database.start_pos =  (uint64_t *) realloc(data_database.start_pos, INITSEQS*n_seqs_database_realloc*sizeof(uint64_t));
-            // }
 
 
             while(c != '\n') c = buffered_fgetc(temp_seq_buffer, &idx, &r, database);  //Skip ID
@@ -163,12 +152,7 @@ int main(int argc, char ** av){
                         //printf("%"PRIu64"%%..wasted: (%e) (%e)", 1+100*pos_in_query/aprox_len_query, (double)(wasted_cycles_forward)/CLOCKS_PER_SEC, (double)(wasted_cycles_reverse)/CLOCKS_PER_SEC); 
                         fflush(stdout);
                     }
-                    //data_database.sequences[pos_in_database++] = (unsigned char) c;
-            
-                    // if(pos_in_database == READBUF*n_realloc_database){ 
-                    //     n_realloc_database++; data_database.sequences = (unsigned char *) realloc(data_database.sequences, READBUF*n_realloc_database*sizeof(unsigned char));
-                    //     if(data_database.sequences == NULL) terror("Could not reallocate temporary database");
-                    // }
+                    
 
 
                 }else{ //It can be anything (including N, Y, X ...)
@@ -177,22 +161,13 @@ int main(int argc, char ** av){
                         word_size = 0;
                         // data_database.sequences[pos_in_database++] = (unsigned char) 'N'; //Convert to N
                         ++current_len;
-                        // if(pos_in_database == READBUF*n_realloc_database){ 
-                        //*/     n_realloc_database++; data_database.sequences = (unsigned char *) realloc(data_database.sequences, READBUF*n_realloc_database*sizeof(unsigned char));
-                        // if(data_database.sequences == NULL) terror("Could not reallocate temporary database");
-                        // }
+
                     } 
                 }
                 //if(current_len % 1000000 == 0) printf(" curr len %" PRIu64"\n", current_len);
                 if(word_size == custom_kmer){
                     //write to hash table
                     
-                    /*
-                    pointer = ct->table[char_converter[curr_kmer[0]]][char_converter[curr_kmer[1]]][char_converter[curr_kmer[2]]]
-                    [char_converter[curr_kmer[3]]][char_converter[curr_kmer[4]]][char_converter[curr_kmer[5]]]
-                    [char_converter[curr_kmer[6]]][char_converter[curr_kmer[7]]][char_converter[curr_kmer[8]]]
-                    [char_converter[curr_kmer[9]]][char_converter[curr_kmer[10]]][char_converter[curr_kmer[11]]];
-                    */
 
                     thit = &ctidx->table[char_converter[curr_kmer[0]]][char_converter[curr_kmer[1]]][char_converter[curr_kmer[2]]]
                     [char_converter[curr_kmer[3]]][char_converter[curr_kmer[4]]][char_converter[curr_kmer[5]]]
@@ -200,49 +175,10 @@ int main(int argc, char ** av){
                     [char_converter[curr_kmer[9]]][char_converter[curr_kmer[10]]][char_converter[curr_kmer[11]]];
                     
 
-                    thit->root = insert_AVLTree(thit->root, hashOfWord(&curr_kmer[FIXED_K], custom_kmer-FIXED_K), mp_AVL, &n_pools_used_AVL, current_len, mp, &n_pools_used);
+                    //thit->root = insert_AVLTree(thit->root, hashOfWord(&curr_kmer[FIXED_K], custom_kmer-FIXED_K), mp_AVL, &n_pools_used_AVL, current_len, mp, &n_pools_used);
+                    thit->root = insert_AVLTree(thit->root, collisioned_hash(&curr_kmer[0], custom_kmer), mp_AVL, &n_pools_used_AVL, current_len, mp, &n_pools_used);
                     
-                    /*
-                    if(pointer == NULL){
-
-                        pointer = getNewLocationllpos(mp, &n_pools_used);
-                        
-
-                        pointer->pos = current_len;
-
-                        //pointer->extended_hash = hashOfWord(&curr_kmer[FIXED_K], FIXED_K);
-
-                        decomposed_hash_of_word(&curr_kmer[0], pointer->decomp_hash, custom_kmer);
-
-                        pointer->next = NULL;
-
-
                     
-
-                    }else{
-
-                        
-                        aux = ct->table[char_converter[curr_kmer[0]]][char_converter[curr_kmer[1]]][char_converter[curr_kmer[2]]]
-                        [char_converter[curr_kmer[3]]][char_converter[curr_kmer[4]]][char_converter[curr_kmer[5]]]
-                        [char_converter[curr_kmer[6]]][char_converter[curr_kmer[7]]][char_converter[curr_kmer[8]]]
-                        [char_converter[curr_kmer[9]]][char_converter[curr_kmer[10]]][char_converter[curr_kmer[11]]];
-
-                        pointer = getNewLocationllpos(mp, &n_pools_used);
-
-                        pointer->pos = current_len;
-                        //pointer->extended_hash = hashOfWord(&curr_kmer[FIXED_K], FIXED_K);
-                        decomposed_hash_of_word(&curr_kmer[0], pointer->decomp_hash, custom_kmer);
-                        pointer->next = aux;
-
-                    }
-                    
-
-                    ct->table[char_converter[curr_kmer[0]]][char_converter[curr_kmer[1]]][char_converter[curr_kmer[2]]]
-                    [char_converter[curr_kmer[3]]][char_converter[curr_kmer[4]]][char_converter[curr_kmer[5]]]
-                    [char_converter[curr_kmer[6]]][char_converter[curr_kmer[7]]][char_converter[curr_kmer[8]]]
-                    [char_converter[curr_kmer[9]]][char_converter[curr_kmer[10]]][char_converter[curr_kmer[11]]] = pointer;
-
-                    */
 
                     // Non overlapping
                     //word_size = 0;
@@ -260,6 +196,7 @@ int main(int argc, char ** av){
         }
         
     }
+
 
     //end = clock();
 
@@ -332,13 +269,8 @@ int main(int argc, char ** av){
                     ++current_len;
                     if(current_len % a_hundreth == 0){ 
                         fprintf(stdout, "\r%"PRIu64"%%...", 1+100*current_len/aprox_len_query); 
-                        //printf("%"PRIu64"%%..wasted: (%e) (%e)", 1+100*pos_in_query/aprox_len_query, (double)(wasted_cycles_forward)/CLOCKS_PER_SEC, (double)(wasted_cycles_reverse)/CLOCKS_PER_SEC); 
                         fflush(stdout);
                     }
-                    // if(pos_in_query % 500000 == 0){
-                    //     fprintf(stdout, "[INFO] Query aprox length %"PRIu64". I have done: %"PRIu64" and time= %e seconds\n", aprox_len_query, pos_in_query, (double)(clock()-begin)/CLOCKS_PER_SEC);
-                    //     begin = clock();
-                    // } 
                     curr_kmer[word_size] = (unsigned char) c;
                     ++word_size;
 
@@ -361,8 +293,12 @@ int main(int argc, char ** av){
 
 
                         uint64_t hash_forward, hash_reverse;
-                        hash_forward = hashOfWord(&curr_kmer[FIXED_K], custom_kmer - FIXED_K);
-                        hash_reverse = hashOfWord(&reverse_kmer[FIXED_K], custom_kmer - FIXED_K);
+                        //hash_forward = hashOfWord(&curr_kmer[FIXED_K], custom_kmer - FIXED_K);
+                        //hash_reverse = hashOfWord(&reverse_kmer[FIXED_K], custom_kmer - FIXED_K);
+
+                        hash_forward = collisioned_hash(&curr_kmer[0], custom_kmer);
+                        hash_reverse = collisioned_hash(&reverse_kmer[0], custom_kmer);
+                        
 
                         thit = &ctidx->table[char_converter[curr_kmer[0]]][char_converter[curr_kmer[1]]][char_converter[curr_kmer[2]]]
                         [char_converter[curr_kmer[3]]][char_converter[curr_kmer[4]]][char_converter[curr_kmer[5]]]
@@ -384,64 +320,6 @@ int main(int argc, char ** av){
 
                         if(search != NULL) thit->hit_count += search->count;
 
-                        /*
-                        aux = ct->table[char_converter[curr_kmer[0]]][char_converter[curr_kmer[1]]][char_converter[curr_kmer[2]]]
-                        [char_converter[curr_kmer[3]]][char_converter[curr_kmer[4]]][char_converter[curr_kmer[5]]]
-                        [char_converter[curr_kmer[6]]][char_converter[curr_kmer[7]]][char_converter[curr_kmer[8]]]
-                        [char_converter[curr_kmer[9]]][char_converter[curr_kmer[10]]][char_converter[curr_kmer[11]]];
-
-                        the_original_hit = aux;
-                        */
-
-
-                        /*
-                        //uint64_t hash_forward, hash_reverse;
-                        //hash_forward = hashOfWord(&curr_kmer[FIXED_K], custom_kmer - FIXED_K);
-                        //hash_reverse = hashOfWord(&reverse_kmer[FIXED_K], custom_kmer - FIXED_K);
-                        unsigned char hash_forward[MAX_DECOMP_HASH], hash_reverse[MAX_DECOMP_HASH];
-                        decomposed_hash_of_word(&curr_kmer[0], &hash_forward[0], custom_kmer);
-                        decomposed_hash_of_word(&reverse_kmer[0], &hash_reverse[0], custom_kmer);
-                        */
-
-
-                        
-                        /*
-                        while(aux != NULL){
-
-                            if(xor_decomposed_hash(aux->decomp_hash, hash_forward, custom_kmer) <= max_differences){
-                            //if(aux->extended_hash == hash_forward){
-
-                                the_original_hit->hits_count++;
-                                
-                            }
-                            aux = aux->next;
-                        }
-                        */
-
-                        
-                        /*
-                        aux = ct->table[char_converter[reverse_kmer[0]]][char_converter[reverse_kmer[1]]][char_converter[reverse_kmer[2]]]
-                        [char_converter[reverse_kmer[3]]][char_converter[reverse_kmer[4]]][char_converter[reverse_kmer[5]]]
-                        [char_converter[reverse_kmer[6]]][char_converter[reverse_kmer[7]]][char_converter[reverse_kmer[8]]]
-                        [char_converter[reverse_kmer[9]]][char_converter[reverse_kmer[10]]][char_converter[reverse_kmer[11]]];
-
-                        the_original_hit = aux;
-                        */
-
-                        /*
-                        while(aux != NULL){                          
-                            
-
-                            if(xor_decomposed_hash(aux->decomp_hash, hash_reverse, custom_kmer) <= max_differences){
-                            //if(aux->extended_hash == hash_reverse){
-
-                                the_original_hit->hits_count++;                            
-                                
-                            }
-                            
-                            aux = aux->next;
-                        }
-                        */
 
                         // Overlapping
                         
@@ -453,23 +331,11 @@ int main(int argc, char ** av){
                         word_size = 0;
                         word_size_rev = custom_kmer-1;
                     }
-
-
-            
-                    // if(pos_in_query == READBUF*n_realloc_database){ 
-                    //     n_realloc_database++; data_query.sequences = (unsigned char *) realloc(data_query.sequences, READBUF*n_realloc_database*sizeof(unsigned char));
-                    //     if(data_query.sequences == NULL) terror("Could not reallocate temporary query");
-                    // }
                 }else{
                     if(c != '\n' && c != '>'){
                         word_size = 0;
                         word_size_rev = custom_kmer-1;
                         ++current_len;
-                        // data_query.sequences[pos_in_query++] = (unsigned char) 'N'; //Convert to N
-                        // if(pos_in_query == READBUF*n_realloc_database){ 
-                        //     n_realloc_database++; data_query.sequences = (unsigned char *) realloc(data_query.sequences, READBUF*n_realloc_database*sizeof(unsigned char));
-                        //     if(data_query.sequences == NULL) terror("Could not reallocate temporary query");
-                        // }
                     }
                 }
             }
@@ -559,10 +425,7 @@ int main(int argc, char ** av){
                         //printf("%"PRIu64"%%..wasted: (%e) (%e)", 1+100*pos_in_query/aprox_len_query, (double)(wasted_cycles_forward)/CLOCKS_PER_SEC, (double)(wasted_cycles_reverse)/CLOCKS_PER_SEC); 
                         fflush(stdout);
                     }
-                    // if(pos_in_query % 500000 == 0){
-                    //     fprintf(stdout, "[INFO] Query aprox length %"PRIu64". I have done: %"PRIu64" and time= %e seconds\n", aprox_len_query, pos_in_query, (double)(clock()-begin)/CLOCKS_PER_SEC);
-                    //     begin = clock();
-                    // } 
+                    
                     curr_kmer[word_size] = (unsigned char) c;
                     ++word_size;
 
@@ -582,42 +445,16 @@ int main(int argc, char ** av){
                     if(word_size == custom_kmer){
 
 
-                        
-                        /*
-                        aux = ct->table[char_converter[curr_kmer[0]]][char_converter[curr_kmer[1]]][char_converter[curr_kmer[2]]]
-                        [char_converter[curr_kmer[3]]][char_converter[curr_kmer[4]]][char_converter[curr_kmer[5]]]
-                        [char_converter[curr_kmer[6]]][char_converter[curr_kmer[7]]][char_converter[curr_kmer[8]]]
-                        [char_converter[curr_kmer[9]]][char_converter[curr_kmer[10]]][char_converter[curr_kmer[11]]];
-
-                        the_original_hit = aux;
-                        */
-
-
-
-                        //uint64_t hash_forward, hash_reverse;
+                        uint64_t hash_forward, hash_reverse;
                         //hash_forward = hashOfWord(&curr_kmer[FIXED_K], custom_kmer - FIXED_K);
                         //hash_reverse = hashOfWord(&reverse_kmer[FIXED_K], custom_kmer - FIXED_K);
-                        /*
-                        unsigned char hash_forward[MAX_DECOMP_HASH], hash_reverse[MAX_DECOMP_HASH];
-                        decomposed_hash_of_word(&curr_kmer[0], &hash_forward[0], custom_kmer);
-                        decomposed_hash_of_word(&reverse_kmer[0], &hash_reverse[0], custom_kmer);
-                        */
-
-                        uint64_t hash_forward, hash_reverse;
-                        hash_forward = hashOfWord(&curr_kmer[FIXED_K], custom_kmer - FIXED_K);
-                        hash_reverse = hashOfWord(&reverse_kmer[FIXED_K], custom_kmer - FIXED_K);
+                        hash_forward = collisioned_hash(&curr_kmer[0], custom_kmer);
+                        hash_reverse = collisioned_hash(&reverse_kmer[0], custom_kmer);
 
                         thit = &ctidx->table[char_converter[curr_kmer[0]]][char_converter[curr_kmer[1]]][char_converter[curr_kmer[2]]]
                         [char_converter[curr_kmer[3]]][char_converter[curr_kmer[4]]][char_converter[curr_kmer[5]]]
                         [char_converter[curr_kmer[6]]][char_converter[curr_kmer[7]]][char_converter[curr_kmer[8]]]
                         [char_converter[curr_kmer[9]]][char_converter[curr_kmer[10]]][char_converter[curr_kmer[11]]];
-
-                        
-
-
-                        
-
-                        
 
                         
                         if(thit->hit_count < (uint64_t)average_hit){
@@ -637,20 +474,11 @@ int main(int argc, char ** av){
                                     uint64_t redir_db = (uint64_t) (aux->pos / (ratio_db));
                                     uint64_t redir_query = (uint64_t) (current_len / (ratio_query));
 
-                                    //representation[redir_query][redir_db] = 1;
-
-                                    // long double i_r = MAX(1.0, custom_kmer * pixel_size_query);
-                                    // long double j_r = MAX(1.0, custom_kmer * pixel_size_db);
-
-                                    // Simple pixel paint
-                                    //representation[redir_query][redir_db] = 1;
+                                    
 
                                     double i_r = i_r_fix; double j_r = j_r_fix;
 
-                                    // printf("Hit is at %"PRIu64", %"PRIu64"\n", current_len, aux->pos);
-                                    // printf("redir : %"PRIu64" %"PRIu64"\n", redir_query, redir_db);
-                                    // printf("drwaing: %"PRId64", %"PRId64"\n", (int64_t) redir_query - (int64_t) i_r, (int64_t) redir_db - (int64_t) j_r);
-                                    // getchar();
+                                    
 
                                     while((uint64_t) i_r >= 1 && (uint64_t) j_r >= 1){
                                         
@@ -697,29 +525,12 @@ int main(int argc, char ** av){
                                     uint64_t redir_query = (uint64_t) ((current_len ) / (ratio_query));
                                     
                                     
-                                    // printf("found at %"PRIu64", %"PRIu64"\n", current_len, aux->pos);
-                                    // printf("original paint is %"PRIu64", %"PRIu64"\n", redir_query, (uint64_t)(aux->pos / ratio_db));
-                                    // printf("therefore i paint at %"PRIu64", %"PRIu64"\n", redir_query, redir_db);
-                                    // getchar();
                                     
-
-                                    //representation[redir_query][redir_db] = 1;
-
-                                    // long double i_r = MAX(1.0, custom_kmer * pixel_size_query);
-                                    // long double j_r = MAX(1.0, custom_kmer * pixel_size_db);
-                                    
-
-                                    // Simple pixel paint
-                                    //representation[redir_query][redir_db] = 1;
 
                                     double i_r = i_r_fix; double j_r = j_r_fix;
 
                                     while((uint64_t) i_r >= 1 && (uint64_t) j_r >= 1){
-                                        // printf("I have %Le %Le which is %"PRIu64" %"PRIu64"\n", i_r, j_r, (uint64_t) i_r, (uint64_t) j_r);
-                                        // printf("Hit is at %"PRIu64", %"PRIu64"\n", pos_in_query, aux->pos);
-                                        // printf("redir : %"PRIu64" %"PRIu64"\n", redir_query, redir_db);
-                                        // printf("drwaing: %"PRId64", %"PRId64"\n", (int64_t) redir_query - (int64_t) i_r, (int64_t) redir_db - (int64_t) j_r);
-                                        // getchar();
+                                        
                                         if((int64_t) redir_query - (int64_t) i_r > 0 && (int64_t) redir_db + (int64_t) j_r < dimension){
                                             representation[(int64_t) redir_query - (int64_t) i_r][(int64_t) redir_db + (int64_t) j_r]++;
                                             //printf("\tplus at %"PRId64", %"PRId64"\n", (int64_t) redir_query - (int64_t) i_r, (int64_t) redir_db + (int64_t) j_r);
@@ -752,22 +563,12 @@ int main(int argc, char ** av){
                         word_size_rev = custom_kmer-1;
                     }
 
-
-            
-                    // if(pos_in_query == READBUF*n_realloc_database){ 
-                    //     n_realloc_database++; data_query.sequences = (unsigned char *) realloc(data_query.sequences, READBUF*n_realloc_database*sizeof(unsigned char));
-                    //     if(data_query.sequences == NULL) terror("Could not reallocate temporary query");
-                    // }
                 }else{
                     if(c != '\n' && c != '>'){
                         word_size = 0;
                         word_size_rev = custom_kmer-1;
                         ++current_len;
-                        // data_query.sequences[pos_in_query++] = (unsigned char) 'N'; //Convert to N
-                        // if(pos_in_query == READBUF*n_realloc_database){ 
-                        //     n_realloc_database++; data_query.sequences = (unsigned char *) realloc(data_query.sequences, READBUF*n_realloc_database*sizeof(unsigned char));
-                        //     if(data_query.sequences == NULL) terror("Could not reallocate temporary query");
-                        // }
+                        
                     }
                 }
             }
@@ -787,37 +588,10 @@ int main(int argc, char ** av){
 
     //begin = clock();
 
-
-    /*
-    Queue * traverse = queue_head.head;
-    while(traverse != NULL){
-        printf("current_piece: %"PRIu64"-%"PRIu64"\n", traverse->r1, traverse->r2);
-        traverse = traverse->next;
-    }
-    */
-
-
     //reads_per_thread = (uint64_t) (floorl((long double) data_query.n_seqs / (long double) n_threads));
     
     fprintf(stdout, "[INFO] Writing matrix\n");
 
-    // representation[0][0] = 1;
-    // representation[1][0] = 1;
-    // representation[2][0] = 1;
-    // representation[3][0] = 1;
-    // representation[4][0] = 1;
-    // representation[5][0] = 1;
-
-
-    // for(i=0; i<dimension+1; i++){
-    //     for(j=0; j<dimension+1; j++){
-    //         fprintf(out_database, "%d ", (int) representation[i][j]);
-    //     }
-    //     fprintf(out_database, "\n");
-    // }
-
-    // Simple filtering
-    // Print score
 
     // And replace 2's with 1's 
     for(i=0; i<dimension+1; i++){
@@ -829,14 +603,6 @@ int main(int argc, char ** av){
 
     
 
-    /*
-    uint64_t z;
-    for(z=0; z<POOL_SIZE; z++){
-        aux = mp[0].base + z;
-        fprintf(stdout, "%p\n", aux);
-        fflush(stdout);
-    }
-    */
     
     //free(ct->table);
 
@@ -856,7 +622,7 @@ int main(int argc, char ** av){
     return 0;
 }
 
-void init_args(int argc, char ** av, FILE ** query, FILE ** database, FILE ** out_database, uint64_t * custom_kmer, uint64_t * dimension, uint64_t * max_differences){
+void init_args(int argc, char ** av, FILE ** query, FILE ** database, FILE ** out_database, uint64_t * custom_kmer, uint64_t * dimension){
 
     int pNum = 0;
     while(pNum < argc){
@@ -866,7 +632,6 @@ void init_args(int argc, char ** av, FILE ** query, FILE ** database, FILE ** ou
             fprintf(stdout, "OPTIONAL:\n");
             fprintf(stdout, "           -kmer       [Integer:   k>1 (default 12)]\n");
             fprintf(stdout, "           -dimension  Size of the output [Integer:   d>0 (default 1000)]\n");
-            fprintf(stdout, "           -diffs      Maximum number of different 4-mers in a hit (default 0)\n");
             fprintf(stdout, "           -out        [File path]\n");
             fprintf(stdout, "           --help      Shows help for program usage\n");
             fprintf(stdout, "\n");
@@ -895,9 +660,7 @@ void init_args(int argc, char ** av, FILE ** query, FILE ** database, FILE ** ou
             *dimension = (uint64_t) atoi(av[pNum+1]);
             if(*dimension < 1) terror("Dimension must be a positive integer");
         }
-        if(strcmp(av[pNum], "-diffs") == 0){
-            *max_differences = (uint64_t) atoi(av[pNum+1]);
-        }
+        
         pNum++;
     }
     
