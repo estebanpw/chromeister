@@ -123,6 +123,21 @@ uint64_t hashOfWord(const unsigned char * word, uint32_t k){
     return value;
 }
 
+void perfect_hash_to_word(unsigned char * word, uint64_t hash, uint32_t k){
+    uint64_t jIdx = (uint64_t) (k-1), upIdx = 0;
+    uint64_t v;
+    while(jIdx >= 0){
+        v = (uint64_t) floor(hash / (pow(4, jIdx)));
+        if(v == 0){ word[upIdx++] = (unsigned char) 'A'; hash -= ((uint64_t) pow(4, jIdx) * 0); }
+        if(v == 1){ word[upIdx++] = (unsigned char) 'C'; hash -= ((uint64_t) pow(4, jIdx) * 1); }
+        if(v == 2){ word[upIdx++] = (unsigned char) 'G'; hash -= ((uint64_t) pow(4, jIdx) * 2); }
+        if(v == 3){ word[upIdx++] = (unsigned char) 'T'; hash -= ((uint64_t) pow(4, jIdx) * 3); }
+        
+        if(jIdx == 0) break;
+        --jIdx;
+    }
+}
+
 uint64_t collisioned_hash(const unsigned char * word, uint32_t k){
     uint64_t jIdx, value = 0;
     for(jIdx=0;jIdx<k;jIdx+=BYTES_IN_MER){

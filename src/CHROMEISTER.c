@@ -178,7 +178,6 @@ int main(int argc, char ** av){
                     //thit->root = insert_AVLTree(thit->root, hashOfWord(&curr_kmer[FIXED_K], custom_kmer-FIXED_K), mp_AVL, &n_pools_used_AVL, current_len, mp, &n_pools_used);
                     thit->root = insert_AVLTree(thit->root, collisioned_hash(&curr_kmer[0], custom_kmer), mp_AVL, &n_pools_used_AVL, current_len, mp, &n_pools_used);
                     
-                    
 
                     // Non overlapping
                     word_size = 0;
