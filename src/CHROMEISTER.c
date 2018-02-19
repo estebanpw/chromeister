@@ -96,6 +96,7 @@ int main(int argc, char ** av){
 
     fseek(database, 0, SEEK_END);
     uint64_t aprox_len_query = ftell(database);
+    uint64_t remember_db_size = aprox_len_query;
     rewind(database);
 
     uint64_t a_hundreth = (aprox_len_query/100);
@@ -175,15 +176,16 @@ int main(int argc, char ** av){
                     [char_converter[curr_kmer[9]]][char_converter[curr_kmer[10]]][char_converter[curr_kmer[11]]];
                     
 
-                    //thit->root = insert_AVLTree(thit->root, hashOfWord(&curr_kmer[FIXED_K], custom_kmer-FIXED_K), mp_AVL, &n_pools_used_AVL, current_len, mp, &n_pools_used);
+                    //thit->root = insert_AVLTree(thit->root, hashOfWord(&curr_kmer[0], custom_kmer), mp_AVL, &n_pools_used_AVL, current_len, mp, &n_pools_used);
                     thit->root = insert_AVLTree(thit->root, collisioned_hash(&curr_kmer[0], custom_kmer), mp_AVL, &n_pools_used_AVL, current_len, mp, &n_pools_used);
+                    
                     
 
                     // Non overlapping
                     word_size = 0;
                     
 		
-		            // Overlapping
+		    // Overlapping
                     //memmove(&curr_kmer[0], &curr_kmer[1], custom_kmer-1);
                     //--word_size;
                 }
@@ -296,8 +298,8 @@ int main(int argc, char ** av){
 
 
                         uint64_t hash_forward, hash_reverse;
-                        //hash_forward = hashOfWord(&curr_kmer[FIXED_K], custom_kmer - FIXED_K);
-                        //hash_reverse = hashOfWord(&reverse_kmer[FIXED_K], custom_kmer - FIXED_K);
+                        //hash_forward = hashOfWord(&curr_kmer[0], custom_kmer);
+                        //hash_reverse = hashOfWord(&reverse_kmer[0], custom_kmer);
 
                         hash_forward = collisioned_hash(&curr_kmer[0], custom_kmer);
                         hash_reverse = collisioned_hash(&reverse_kmer[0], custom_kmer);
@@ -407,11 +409,16 @@ int main(int argc, char ** av){
     }
     
 
+    double func_distr = log((double) aprox_len_query) + log((double) remember_db_size) - log((double) total_hits);
+    double Eprime = 2.0 + 2 * (double) aprox_len_query * exp(-func_distr); // Added extra 2 for small cases
     
-    double average_hit = (double) total_hits / (double) table_size;
+    
+    //double average_hit = ((double) total_hits / (double) table_size);
+    //average_hit = 2.2;
 
 
-    fprintf(stdout, "[INFO] Total hit count is %"PRIu64" on a size of %"PRIu64" Avg = %e.\n", total_hits, table_size, average_hit);
+    //fprintf(stdout, "[INFO] Total hit count is %"PRIu64" on a size of %"PRIu64" Avg = %e.\n", total_hits, table_size, average_hit);
+    fprintf(stdout, "[INFO] Total hit count is %"PRIu64" on a size of %"PRIu64" E' = %e.\n", total_hits, table_size, Eprime);
 
     fprintf(stdout, "[INFO] Generating hits.\n");
 
@@ -428,7 +435,8 @@ int main(int argc, char ** av){
 
         aux = hash_holder_table[current_len].node->next;
 
-        if(hash_holder_table[current_len].th->hit_count < (uint64_t) average_hit){
+        //if(hash_holder_table[current_len].th->hit_count < (uint64_t) average_hit){
+        if(hash_holder_table[current_len].th->hit_count < (uint64_t) Eprime){
             while(aux != NULL){
                 // Convert scale to representation
                 uint64_t redir_db = (uint64_t) (aux->pos / (ratio_db));
