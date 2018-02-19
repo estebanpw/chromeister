@@ -160,4 +160,18 @@ image(t(score_copy), col = grey(seq(1, 0, length = 256)), xaxt='n', yaxt='n', ma
 dev.off()
 
 
+# Output pixel coordinates of highly conserved signals
+
+# To clear it in case it existed
+write(c("X", "Y"), file = paste("hits-XY-", fancy_name), append = FALSE, sep = "\n")
+
+for(i in 1:(length(score_copy[,1]))){
+	for(j in 1:(length(score_copy[1,]))){
+		if(score_copy[i,j] != 0){
+			write(c(paste(i, j)), file = paste("hits-XY-", fancy_name), append = TRUE, sep = "\n")
+		}
+	}
+}
+
+
 
