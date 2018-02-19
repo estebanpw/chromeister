@@ -163,12 +163,12 @@ dev.off()
 # Output pixel coordinates of highly conserved signals
 
 # To clear it in case it existed
-write(c("X", "Y"), file = paste("hits-XY-", fancy_name), append = FALSE, sep = "\n")
+write(c("X", "Y"), file = paste("hits-XY-", fancy_name, sep=""), append = FALSE, sep = "\n")
 
 for(i in 1:(length(score_copy[,1]))){
 	for(j in 1:(length(score_copy[1,]))){
 		if(score_copy[i,j] != 0){
-			write(c(paste(i, j)), file = paste("hits-XY-", fancy_name), append = TRUE, sep = "\n")
+			write(c(paste(i, j)), file = paste("hits-XY-", fancy_name, sep=""), append = TRUE, sep = "\n")
 		}
 	}
 }
