@@ -190,11 +190,14 @@ AVLTree * insert_AVLTree(AVLTree * node, uint64_t key, Mempool_AVL * mp, uint64_
         node->right = insert_AVLTree(node->right, key, mp, n_pools_used, pos, mp_l, n_pools_used_l);
     } else { 
         // Equal keys are inserted as a linked list
-        llpos * aux = getNewLocationllpos(mp_l, n_pools_used_l);
-        aux->pos = pos;
-        aux->next = node->next;
-        node->next = aux;
-        ++(node->count);
+        if(node->count == 1){ // DO NOT INSERT MORE THAN 2. 1 is good 2 is repetition
+            llpos * aux = getNewLocationllpos(mp_l, n_pools_used_l);
+            aux->pos = pos;
+            aux->next = node->next;
+            node->next = aux;
+            ++(node->count);
+        }
+        
         return node;
     }
  

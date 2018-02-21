@@ -65,6 +65,7 @@ int main(int argc, char ** av){
     init_args(argc, av, &query, &database, &out_database, &custom_kmer, &dimension);
 
 
+
     unsigned char char_converter[91];
     char_converter[(unsigned char)'A'] = 0;
     char_converter[(unsigned char)'C'] = 1;
@@ -96,7 +97,6 @@ int main(int argc, char ** av){
 
     fseek(database, 0, SEEK_END);
     uint64_t aprox_len_query = ftell(database);
-    uint64_t remember_db_size = aprox_len_query;
     rewind(database);
 
     uint64_t a_hundreth = (aprox_len_query/100);
@@ -176,7 +176,7 @@ int main(int argc, char ** av){
                     [char_converter[curr_kmer[9]]][char_converter[curr_kmer[10]]][char_converter[curr_kmer[11]]];
                     
 
-                    //thit->root = insert_AVLTree(thit->root, hashOfWord(&curr_kmer[0], custom_kmer), mp_AVL, &n_pools_used_AVL, current_len, mp, &n_pools_used);
+                    //thit->root = insert_AVLTree(thit->root, hashOfWord(&curr_kmer[0], custom_kmer, FIXED_K), mp_AVL, &n_pools_used_AVL, current_len, mp, &n_pools_used);
                     thit->root = insert_AVLTree(thit->root, collisioned_hash(&curr_kmer[0], custom_kmer), mp_AVL, &n_pools_used_AVL, current_len, mp, &n_pools_used);
                     
                     
@@ -225,7 +225,10 @@ int main(int argc, char ** av){
     aprox_len_query = ftell(query);
     rewind(query);
 
-    Hash_holder * hash_holder_table = (Hash_holder *) calloc(2*aprox_len_query, sizeof(Hash_holder));
+    uint64_t reallocs_hash_holder_table = 1;
+    uint64_t n_items_hash_holder_table = aprox_len_query / 5;
+
+    Hash_holder * hash_holder_table = (Hash_holder *) calloc(n_items_hash_holder_table, sizeof(Hash_holder));
     if(hash_holder_table == NULL) terror("Could not allocate hash holding table");
 
     a_hundreth = (aprox_len_query/100);
@@ -298,8 +301,8 @@ int main(int argc, char ** av){
 
 
                         uint64_t hash_forward, hash_reverse;
-                        //hash_forward = hashOfWord(&curr_kmer[0], custom_kmer);
-                        //hash_reverse = hashOfWord(&reverse_kmer[0], custom_kmer);
+                        //hash_forward = hashOfWord(&curr_kmer[0], custom_kmer, FIXED_K);
+                        //hash_reverse = hashOfWord(&reverse_kmer[0], custom_kmer, FIXED_K);
 
                         hash_forward = collisioned_hash(&curr_kmer[0], custom_kmer);
                         hash_reverse = collisioned_hash(&reverse_kmer[0], custom_kmer);
@@ -312,7 +315,7 @@ int main(int argc, char ** av){
 
                         AVLTree * search = find_AVLTree(thit->root, hash_forward);
 
-                        if(search != NULL){
+                        if(search != NULL && search->count == 1){ //If count is two, then it is a rep
                             thit->hit_count += search->count;
                             /*
                                 typedef struct hash_holder{
@@ -324,6 +327,11 @@ int main(int argc, char ** av){
                             hash_holder_table[c_hash_holder].node = search;
                             hash_holder_table[c_hash_holder].th = thit;
                             ++c_hash_holder;
+                            if(c_hash_holder == n_items_hash_holder_table*reallocs_hash_holder_table){
+                                ++reallocs_hash_holder_table;
+                                hash_holder_table = (Hash_holder *) realloc(hash_holder_table, n_items_hash_holder_table*reallocs_hash_holder_table*sizeof(Hash_holder));
+                                if(hash_holder_table == NULL) terror("Could not realloc hash holder table");
+                            }
                         }
 
                         
@@ -335,13 +343,18 @@ int main(int argc, char ** av){
 
                         search = find_AVLTree(thit->root, hash_reverse);
 
-                        if(search != NULL){
+                        if(search != NULL && search->count == 1){ //If count is two, then it is a rep
                             
                             thit->hit_count += search->count;
                             hash_holder_table[c_hash_holder].pos = current_len;
                             hash_holder_table[c_hash_holder].node = search;
                             hash_holder_table[c_hash_holder].th = thit;
                             ++c_hash_holder;
+                            if(c_hash_holder == n_items_hash_holder_table*reallocs_hash_holder_table){
+                                ++reallocs_hash_holder_table;
+                                hash_holder_table = (Hash_holder *) realloc(hash_holder_table, n_items_hash_holder_table*reallocs_hash_holder_table*sizeof(Hash_holder));
+                                if(hash_holder_table == NULL) terror("Could not realloc hash holder table");
+                            }
                         }
 
 
@@ -409,8 +422,10 @@ int main(int argc, char ** av){
     }
     
 
-    double func_distr = log((double) aprox_len_query) + log((double) remember_db_size) - log((double) total_hits);
-    double Eprime = 2.0 + 2 * (double) aprox_len_query * exp(-func_distr); // Added extra 2 for small cases
+    //double func_distr = log((double) aprox_len_query) + log((double) remember_db_size) - log((double) total_hits);
+    //double Eprime = 2.0 + 2 * (double) aprox_len_query * exp(-func_distr); // Added extra 2 for small cases
+    //double Eprime = MAX(2.0, ((double)aprox_len_query/pow(4.0, FIXED_K)));
+    double Eprime = 2.0;
     
     
     //double average_hit = ((double) total_hits / (double) table_size);

@@ -31,7 +31,7 @@ uint64_t quick_pow4(uint64_t n);
 
 uint64_t quick_pow4byLetter(uint64_t n, const char c);
 
-uint64_t hashOfWord(const unsigned char * word, uint32_t k);
+uint64_t hashOfWord(const unsigned char * word, uint32_t k, uint64_t offset);
 
 void perfect_hash_to_word(unsigned char * word, uint64_t hash, uint32_t k);
 

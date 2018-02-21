@@ -114,10 +114,10 @@ uint64_t quick_pow4byLetter(uint64_t n, const char c){
     return 0;
 }
 
-uint64_t hashOfWord(const unsigned char * word, uint32_t k){
+uint64_t hashOfWord(const unsigned char * word, uint32_t k, uint64_t offset){
     
     uint64_t value = 0, jIdx;
-    for(jIdx=0;jIdx<k;jIdx++){
+    for(jIdx=0;jIdx<k-offset;jIdx++){
         value += quick_pow4byLetter(k-(jIdx+1), (char) word[jIdx]);
     }
     return value;
