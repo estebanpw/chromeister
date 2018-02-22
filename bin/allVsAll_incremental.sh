@@ -5,16 +5,24 @@ EXT=$3
 DIM=$4
 KMER=$5
 
-array=()
-x=0
-array2=()
+
 
 if [ $# != 5 ]; then
 	echo "***ERROR*** Use: $0 genomesDirectory1 genomesDirectory2 extension dim kmer"
 	exit -1
 fi
 
+indexnameA=$(basename "$DIR")
+indexnameB=$(basename "$DIR2")
+
 BINDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+mkdir $indexnameA-$indexnameB
+cd $indexnameA-$indexnameB
+
+array=()
+x=0
+array2=()
 
 for elem in $(ls -d $DIR/*.$EXT | awk -F "/" '{print $NF}' | awk -F ".$EXT" '{print $1}')
 do
@@ -53,8 +61,7 @@ done
 
 # generate index
 if [[ ! -f index.csv.temp ]]; then
-	indexnameA=$(basename "$DIR")
-	indexnameB=$(basename "$DIR2")
+	
 	echo "Launching... $BINDIR/index_chromeister.sh index-$indexnameA-$indexnameB.csv $DIR $DIR2"
 	$BINDIR/index_chromeister.sh . index-$indexnameA-$indexnameB.csv $DIR $DIR2
 	echo "Launching... $BINDIR/generate-one-score.sh index-$indexnameA-$indexnameB.csv"

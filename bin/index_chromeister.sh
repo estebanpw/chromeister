@@ -6,6 +6,11 @@ OUT=$2
 
 echo "Computing index CSV..." > index.csv.temp
 
+while [ "$(find . -size 0 | wc -l)" -ne 0 ]; do
+        sleep 10s
+done
+
+
 EXT="mat"
 EXTSCORE="scr.txt"
 EXTGENERAL=".fa.fasta"
