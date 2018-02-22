@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include <pthread.h>
 #include <inttypes.h>
 #include <math.h>
 #include <float.h>

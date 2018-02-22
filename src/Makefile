@@ -8,7 +8,7 @@ all: CHROMEISTER
 
 
 CHROMEISTER: CHROMEISTER.c
-	$(CC) $(CFLAGS) alignmentFunctions.c -lpthread -lm commonFunctions.c -lm CHROMEISTER.c -lpthread -lm -o $(BIN)/CHROMEISTER
+	$(CC) $(CFLAGS) alignmentFunctions.c -lm commonFunctions.c -lm CHROMEISTER.c -lm -o $(BIN)/CHROMEISTER
 
 clean:
 	rm -rf $(BIN)/CHROMEISTER

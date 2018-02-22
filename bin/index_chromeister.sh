@@ -4,9 +4,12 @@ FASTAS1=$3
 FASTAS2=$4
 OUT=$2
 
+echo "Computing index CSV..." > index.csv.temp
+
 EXT="mat"
 EXTSCORE="scr.txt"
 EXTGENERAL=".fa.fasta"
+
 
 
 if [ $# != 4 ]; then
@@ -67,4 +70,6 @@ sort -k5,5n -k6,6n -o $OUT $OUT
 
 
 sed -i '1iSpX, SpY, IDX, IDY, IMG, CHNumberX, CHNumberY, Score' $OUT
+
+rm index.csv.temp
 

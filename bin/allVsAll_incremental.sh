@@ -50,3 +50,14 @@ do
 			
 	done
 done
+
+# generate index
+if [[ ! -f index.csv.temp ]]; then
+	indexnameA=$(basename "$DIR")
+	indexnameB=$(basename "$DIR2")
+	$BINDIR/index_chromeister.sh index-$indexnameA-$indexnameB.csv $DIR $DIR2
+	$BINDIR/generate-one-score.sh index-$indexnameA-$indexnameB.csv
+fi
+
+
+

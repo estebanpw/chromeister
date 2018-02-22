@@ -16,7 +16,6 @@ USAGE       Usage is described by calling ./CHROMEISTER --help
 #include <math.h>
 #include <string.h>
 #include <ctype.h>
-#include <pthread.h>
 #include "structs.h"
 #include "alignmentFunctions.h"
 #include "commonFunctions.h"
