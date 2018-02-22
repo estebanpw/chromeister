@@ -55,7 +55,9 @@ done
 if [[ ! -f index.csv.temp ]]; then
 	indexnameA=$(basename "$DIR")
 	indexnameB=$(basename "$DIR2")
-	$BINDIR/index_chromeister.sh index-$indexnameA-$indexnameB.csv $DIR $DIR2
+	echo "Launching... $BINDIR/index_chromeister.sh index-$indexnameA-$indexnameB.csv $DIR $DIR2"
+	$BINDIR/index_chromeister.sh . index-$indexnameA-$indexnameB.csv $DIR $DIR2
+	echo "Launching... $BINDIR/generate-one-score.sh index-$indexnameA-$indexnameB.csv"
 	$BINDIR/generate-one-score.sh index-$indexnameA-$indexnameB.csv
 fi
 

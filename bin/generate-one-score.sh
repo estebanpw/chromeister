@@ -22,6 +22,7 @@ currsum=0
 othergencounter=0
 # for problems with chromo X and Y
 highest=1 
+lastprint=$currgenome
 # For all lines
 
 cat $CSV | tail -n +2 > $1.temp
@@ -40,6 +41,7 @@ do
 		#echo "array (should: $currsum) has on $highest -> ${array[${highest}]}"
 		highest=`expr $highest + 1`
 		currsum=0
+		lastprint=$currgenome
 		currgenome=$othergenome
 		othergencounter=0
 	else
@@ -51,13 +53,23 @@ do
 
 done < "$1.temp"
 
+if [ "$lastprint" == "$currgenome" ]; then
+	array[$highest]=$(awk -v a="$currsum" -v b="$othergencounter" 'BEGIN {print a/b}')
+	#echo "array (should: $currsum) has on $highest -> ${array[${highest}]}"
+	highest=`expr $highest + 1`
+	currsum=0
+	currgenome=$othergenome
+	othergencounter=0
+fi
+
+
 highest=`expr $highest - 1`
 rm $1.temp
 
 tsum=0
 rm $1.csv.inter
 for ((i = 1; i <= highest; i++)); do
-	echo "${array[${i}]}" >> $1.csv.inter
+	echo "${array[${i}]}" >> $1.inter
 	#val=${array[${i}]}
 	#tsum=$(awk -v a="$tsum" -v b="$val" '{print a=a+b}')
 done
