@@ -60,7 +60,7 @@ do
 done
 
 # generate index
-if [[ ! -f index.csv.temp ]]; then
+if [[ ! -f index.csv.temp ]] && [ ! -f index-$indexnameA-$indexnameB.csv  ]; then
 	
 	echo "Launching... $BINDIR/index_chromeister.sh index-$indexnameA-$indexnameB.csv $DIR $DIR2"
 	$BINDIR/index_chromeister.sh . index-$indexnameA-$indexnameB.csv $DIR $DIR2
