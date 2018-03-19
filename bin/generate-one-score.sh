@@ -21,11 +21,10 @@ currgenome=$(tail -n +2 "$CSV" | head -1 | awk -F "," '{print $6}')
 array=()
 arraytosort=()
 names=()
-currsum=0
+condition=0
 othergencounter=0
 # for problems with chromo X and Y
 highest=1 
-lastprint=$currgenome
 # For all lines
 
 cat $CSV | tail -n +2 > $1.temp
@@ -34,11 +33,16 @@ while IFS= read -r i
 do
 
 	othergenome=$(echo "$i" | awk -F "," '{print $6}')
-	
+	if [ "$condition" -eq 0 ]; then
+		currgenome=$othergenome
+		condition=1
+	fi
 	
 	if [ "$othergenome" != "$currgenome" ]; then
 	
 		# Sort the array with temporal values
+		#printf '%s\n' "${arraytosort[@]}"
+		#echo "name is $currgenome"
 		sorted=($(printf '%s\n' "${arraytosort[@]}"|sort))
 		# accumulate sum until threshold is reached
 		usedValues=1
@@ -67,12 +71,19 @@ do
 		array[$highest]=$finalvalue
 		
 		highest=`expr $highest + 1`
-		currsum=0
+		condition=0
 		names+=($currgenome)
-		lastprint=$currgenome
-		currgenome=$othergenome
 		othergencounter=0
 		unset arraytosort
+		
+		
+		
+		
+		getvalue=$(echo "$i" | awk -F "," '{print $8}')
+		# Copy value to array 
+		arraytosort[$othergencounter]=$getvalue
+		#currsum=$(awk -v a="$currsum" -v b="$getvalue" 'BEGIN {print a=a+(1-b); exit}')
+		othergencounter=`expr $othergencounter + 1`
 	else
 		getvalue=$(echo "$i" | awk -F "," '{print $8}')
 		# Copy value to array 
