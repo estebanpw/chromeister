@@ -21,6 +21,7 @@ currgenome=$(tail -n +2 "$CSV" | head -1 | awk -F "," '{print $6}')
 array=()
 arraytosort=()
 names=()
+homologies=()
 condition=0
 othergencounter=0
 # for problems with chromo X and Y
@@ -45,21 +46,27 @@ do
 		#echo "name is $currgenome"
 		sorted=($(printf '%s\n' "${arraytosort[@]}"|sort))
 		# accumulate sum until threshold is reached
-		usedValues=1
-		usedValuesNext=2
-		first=$sorted[$usedValues]
-		next=$sorted[$usedValuesNext]
+		usedValues=0
+		usedValuesNext=1
+		first=${sorted[${usedValues}]}
+		next=${sorted[${usedValuesNext}]}
 		finalvalue=$first
 		divisor=1
-		currdiff=$(awk -v a="$first" -v b="$next" -v c="$TH" 'BEGIN {if(b-a > c) print 1; else print 2; }')
-		while [ $currdiff -eq 1 -a $usedValuesNext -lt $highest ];
+		currdiff=$(awk -v a="$first" -v b="$next" 'BEGIN {print b-a }')
+		condition=$(awk -v a="$currdif" -v b="$TH" 'BEGIN {if(a>b) print 1; else print 2;} ')
+		#echo "first $first next $next result $currdiff condition $condition divisor $divisor"
+		while [ $condition -eq 2 -a $usedValuesNext -lt ${#sorted[@]} ];
 		do
 			finalvalue=$(awk -v a="$finalvalue" -v b="$next" 'BEGIN {print a+b}')
 			usedValues=`expr $usedValues + 1`
 			usedValuesNext=`expr $usedValuesNext + 1`
 			first=$sorted[$usedValues]
 			next=$sorted[$usedValuesNext]
+			
+			currdiff=$(awk -v a="$first" -v b="$next" 'BEGIN {print b-a }')
+			condition=$(awk -v a="$currdif" -v b="$TH" 'BEGIN {if(a>b) print 1; else print 2;} ')
 			divisor=$(awk -v a="$divisor" 'BEGIN {print a+0.1}')
+			#echo "first $first next $next result $currdiff condition $condition divisor $divisor"
 			
 		done
 
@@ -69,6 +76,7 @@ do
 		# array holds the results
 		#array[$highest]=$(awk -v a="$currsum" -v b="$othergencounter" 'BEGIN {print a/b}')
 		array[$highest]=$finalvalue
+		homologies[$highest]=$divisor
 		
 		highest=`expr $highest + 1`
 		condition=0
