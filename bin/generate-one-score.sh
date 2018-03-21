@@ -52,21 +52,24 @@ do
 		next=${sorted[${usedValuesNext}]}
 		finalvalue=$first
 		divisor=1
-		currdiff=$(awk -v a="$first" -v b="$next" 'BEGIN {print b-a }')
-		condition=$(awk -v a="$currdif" -v b="$TH" 'BEGIN {if(a>b) print 1; else print 2;} ')
-		#echo "first $first next $next result $currdiff condition $condition divisor $divisor"
-		while [ $condition -eq 2 -a $usedValuesNext -lt ${#sorted[@]} ];
+		currdiff=$(LC_NUMERIC=POSIX awk -v a="$first" -v b="$next" 'BEGIN {print b-a }')
+		TH=$(printf '%4.6f' $TH)
+		#echo "$(LC_NUMERIC=POSIX awk -v a="$currdiff" -v b="$TH" 'BEGIN { printf("comp %f > %f = %d",a,b,a>b)} ')"
+		condition=$(LC_NUMERIC=POSIX awk -v a="$currdiff" -v b="$TH" 'BEGIN { printf("%d",a>b)} ')
+		#echo "first $first next $next result $currdiff condition $condition divisor $divisor th $TH"
+		while [ $condition -eq 1 -a $usedValuesNext -lt ${#sorted[@]} ];
 		do
-			finalvalue=$(awk -v a="$finalvalue" -v b="$next" 'BEGIN {print a+b}')
+			finalvalue=$(LC_NUMERIC=POSIX awk -v a="$finalvalue" -v b="$next" 'BEGIN {print a+b}')
 			usedValues=`expr $usedValues + 1`
 			usedValuesNext=`expr $usedValuesNext + 1`
-			first=$sorted[$usedValues]
-			next=$sorted[$usedValuesNext]
+			first=${sorted[${usedValues}]}
+			next=${sorted[${usedValuesNext}]}
 			
-			currdiff=$(awk -v a="$first" -v b="$next" 'BEGIN {print b-a }')
-			condition=$(awk -v a="$currdif" -v b="$TH" 'BEGIN {if(a>b) print 1; else print 2;} ')
-			divisor=$(awk -v a="$divisor" 'BEGIN {print a+0.1}')
-			#echo "first $first next $next result $currdiff condition $condition divisor $divisor"
+			#echo "$(LC_NUMERIC=POSIX awk -v a="$currdiff" -v b="$TH" 'BEGIN { printf("comp %f > %f = %d",a,b,a>b)} ')"
+			currdiff=$(LC_NUMERIC=POSIX awk -v a="$first" -v b="$next" 'BEGIN {printf("%f", b-a) }')
+			condition=$(LC_NUMERIC=POSIX awk -v a="$currdiff" -v b="$TH" 'BEGIN { printf("%d", a>b)} ')
+			divisor=$(LC_NUMERIC=POSIX awk -v a="$divisor" 'BEGIN {print a+0.1}')
+			#echo "first $first next $next result $currdiff condition $condition divisor $divisor th $TH"
 			
 		done
 
@@ -76,7 +79,7 @@ do
 		# array holds the results
 		#array[$highest]=$(awk -v a="$currsum" -v b="$othergencounter" 'BEGIN {print a/b}')
 		array[$highest]=$finalvalue
-		homologies[$highest]=$divisor
+		homologies[$highest]=$usedValuesNext
 		
 		highest=`expr $highest + 1`
 		condition=0
