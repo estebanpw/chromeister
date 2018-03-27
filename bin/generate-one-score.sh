@@ -44,42 +44,45 @@ do
 		# Sort the array with temporal values
 		#printf '%s\n' "${arraytosort[@]}"
 		#echo "name is $currgenome"
+		
 		sorted=($(printf '%s\n' "${arraytosort[@]}"|sort))
+		
+		#echo "For chroomo $currgenome we have "
+		#echo $(printf '%s,' "${sorted[@]}")
 		# accumulate sum until threshold is reached
-		usedValues=0
-		usedValuesNext=1
-		first=${sorted[${usedValues}]}
-		next=${sorted[${usedValuesNext}]}
+		usedValues=1
+		usedValuesNext=2
+		first=${sorted[0]}
+		next=${sorted[${usedValues}]}
+		nextofnext=${sorted[${usedValuesNext}]}
 		finalvalue=$first
-		divisor=1
-		currdiff=$(LC_NUMERIC=POSIX awk -v a="$first" -v b="$next" 'BEGIN {print b-a }')
+		divisor=0
+		currdiff=$(LC_NUMERIC=POSIX awk -v a="$next" -v b="$nextofnext" 'BEGIN {print b-a }')
 		TH=$(printf '%4.6f' $TH)
 		#echo "$(LC_NUMERIC=POSIX awk -v a="$currdiff" -v b="$TH" 'BEGIN { printf("comp %f > %f = %d",a,b,a>b)} ')"
 		condition=$(LC_NUMERIC=POSIX awk -v a="$currdiff" -v b="$TH" 'BEGIN { printf("%d",a>b)} ')
-		#echo "first $first next $next result $currdiff condition $condition divisor $divisor th $TH"
+		#echo "first $first next $next result $currdiff condition $condition divisor $divisor th $TH finalvalue $finalvalue"
 		while [ $condition -eq 1 -a $usedValuesNext -lt ${#sorted[@]} ];
 		do
-			finalvalue=$(LC_NUMERIC=POSIX awk -v a="$finalvalue" -v b="$next" 'BEGIN {print a+b}')
 			usedValues=`expr $usedValues + 1`
 			usedValuesNext=`expr $usedValuesNext + 1`
-			first=${sorted[${usedValues}]}
-			next=${sorted[${usedValuesNext}]}
+			finalvalue=$(LC_NUMERIC=POSIX awk -v a="$finalvalue" -v b="$next" 'BEGIN {print (a+b)}')
+			next=${sorted[${usedValues}]}
+			nextofnext=${sorted[${usedValuesNext}]}
 			
-			#echo "$(LC_NUMERIC=POSIX awk -v a="$currdiff" -v b="$TH" 'BEGIN { printf("comp %f > %f = %d",a,b,a>b)} ')"
-			currdiff=$(LC_NUMERIC=POSIX awk -v a="$first" -v b="$next" 'BEGIN {printf("%f", b-a) }')
+			currdiff=$(LC_NUMERIC=POSIX awk -v a="$nextofnext" -v b="$next" 'BEGIN {printf("%f", b-a) }')
 			condition=$(LC_NUMERIC=POSIX awk -v a="$currdiff" -v b="$TH" 'BEGIN { printf("%d", a>b)} ')
 			divisor=$(LC_NUMERIC=POSIX awk -v a="$divisor" 'BEGIN {print a+0.1}')
-			#echo "first $first next $next result $currdiff condition $condition divisor $divisor th $TH"
 			
 		done
 
-		# Once we are done, finalvalue has to be divided
-		finalvalue=$(awk -v a="$finalvalue" -v b="$divisor" 'BEGIN {print a/b}')
+		#echo "so this is what we got $finalvalue, when divided using $divisor"
 		
 		# array holds the results
 		#array[$highest]=$(awk -v a="$currsum" -v b="$othergencounter" 'BEGIN {print a/b}')
+		finalvalue=$(LC_NUMERIC=POSIX awk -v a="$finalvalue" -v b="$usedValues" -v c="$divisor" 'BEGIN {printf("%f", a/(b-c))}')
 		array[$highest]=$finalvalue
-		homologies[$highest]=$usedValuesNext
+		homologies[$highest]=$usedValues
 		
 		highest=`expr $highest + 1`
 		condition=0
@@ -110,35 +113,41 @@ done < "$1.temp"
 #if [ "$lastprint" == "$currgenome" ]; then
 # Sort the array with temporal values
 sorted=($(printf '%s\n' "${arraytosort[@]}"|sort))
-# accumulate sum until threshold is reached
-usedValues=0
-usedValuesNext=1
-first=${sorted[${usedValues}]}
-next=${sorted[${usedValuesNext}]}
+
+usedValues=1
+usedValuesNext=2
+first=${sorted[0]}
+next=${sorted[${usedValues}]}
+nextofnext=${sorted[${usedValuesNext}]}
 finalvalue=$first
-divisor=1
-currdiff=$(LC_NUMERIC=POSIX awk -v a="$first" -v b="$next" 'BEGIN {print b-a }')
+divisor=0
+currdiff=$(LC_NUMERIC=POSIX awk -v a="$next" -v b="$nextofnext" 'BEGIN {print b-a }')
 TH=$(printf '%4.6f' $TH)
 #echo "$(LC_NUMERIC=POSIX awk -v a="$currdiff" -v b="$TH" 'BEGIN { printf("comp %f > %f = %d",a,b,a>b)} ')"
 condition=$(LC_NUMERIC=POSIX awk -v a="$currdiff" -v b="$TH" 'BEGIN { printf("%d",a>b)} ')
-#echo "first $first next $next result $currdiff condition $condition divisor $divisor th $TH"
+#echo "first $first next $next result $currdiff condition $condition divisor $divisor th $TH finalvalue $finalvalue"
 while [ $condition -eq 1 -a $usedValuesNext -lt ${#sorted[@]} ];
 do
-	finalvalue=$(LC_NUMERIC=POSIX awk -v a="$finalvalue" -v b="$next" 'BEGIN {print a+b}')
-	usedValues=`expr $usedValues + 1`
-	usedValuesNext=`expr $usedValuesNext + 1`
-	first=${sorted[${usedValues}]}
-	next=${sorted[${usedValuesNext}]}
-	#echo "$(LC_NUMERIC=POSIX awk -v a="$currdiff" -v b="$TH" 'BEGIN { printf("comp %f > %f = %d",a,b,a>b)} ')"
-	currdiff=$(LC_NUMERIC=POSIX awk -v a="$first" -v b="$next" 'BEGIN {printf("%f", b-a) }')
-	condition=$(LC_NUMERIC=POSIX awk -v a="$currdiff" -v b="$TH" 'BEGIN { printf("%d", a>b)} ')
-	divisor=$(LC_NUMERIC=POSIX awk -v a="$divisor" 'BEGIN {print a+0.1}')
-	#echo "first $first next $next result $currdiff condition $condition divisor $divisor th $TH"
+        usedValues=`expr $usedValues + 1`
+        usedValuesNext=`expr $usedValuesNext + 1`
+        finalvalue=$(LC_NUMERIC=POSIX awk -v a="$finalvalue" -v b="$next" 'BEGIN {print (a+b)}')
+        next=${sorted[${usedValues}]}
+        nextofnext=${sorted[${usedValuesNext}]}
+
+        currdiff=$(LC_NUMERIC=POSIX awk -v a="$nextofnext" -v b="$next" 'BEGIN {printf("%f", b-a) }')
+        condition=$(LC_NUMERIC=POSIX awk -v a="$currdiff" -v b="$TH" 'BEGIN { printf("%d", a>b)} ')
+        divisor=$(LC_NUMERIC=POSIX awk -v a="$divisor" 'BEGIN {print a+0.1}')
+
 done
-# Once we are done, finalvalue has to be divided
-finalvalue=$(awk -v a="$finalvalue" -v b="$divisor" 'BEGIN {print a/b}')
-homologies[$highest]=$usedValuesNext
+
+#echo "so this is what we got $finalvalue, when divided using $divisor"
+
+# array holds the results
+#array[$highest]=$(awk -v a="$currsum" -v b="$othergencounter" 'BEGIN {print a/b}')
+finalvalue=$(LC_NUMERIC=POSIX awk -v a="$finalvalue" -v b="$usedValues" -v c="$divisor" 'BEGIN {printf("%f", a/(b-c))}')
 array[$highest]=$finalvalue
+homologies[$highest]=$usedValues
+
 
 highest=`expr $highest + 1`
 currsum=0
@@ -152,10 +161,12 @@ highest=`expr $highest - 1`
 rm $1.temp
 
 tsum=0
-rm $1.csv.inter
+echo "deleteme" > $1.inter
+rm $1.inter
 aux=0
 for ((i = 1; i <= highest; i++)); do
-	echo "${names[${aux}]} ${array[${i}]}" >> $1.inter
+	echo "${names[${aux}]} ${array[${i}]} ${homologies[${i}]}" >> $1.inter
+	#echo "${names[${aux}]} ${array[${i}]} ${homologies[${i}]}"
 	aux=`expr $aux + 1`
 	#val=${array[${i}]}
 	#tsum=$(awk -v a="$tsum" -v b="$val" '{print a=a+b}')
