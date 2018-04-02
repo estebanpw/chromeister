@@ -4,11 +4,12 @@ DIR2=$2
 EXT=$3
 DIM=$4
 KMER=$5
+TH=$6
 
 
 
-if [ $# != 5 ]; then
-	echo "***ERROR*** Use: $0 genomesDirectory1 genomesDirectory2 extension dim kmer"
+if [ $# != 6 ]; then
+	echo "***ERROR*** Use: $0 genomesDirectory1 genomesDirectory2 extension dim kmer th-phylo"
 	exit -1
 fi
 
@@ -65,7 +66,7 @@ if [[ ! -f index.csv.temp ]] && [ ! -f index-$indexnameA-$indexnameB.csv  ]; the
 	echo "Launching... $BINDIR/index_chromeister.sh index-$indexnameA-$indexnameB.csv $DIR $DIR2"
 	$BINDIR/index_chromeister.sh . index-$indexnameA-$indexnameB.csv $DIR $DIR2
 	echo "Launching... $BINDIR/generate-one-score.sh index-$indexnameA-$indexnameB.csv"
-	$BINDIR/generate-one-score.sh index-$indexnameA-$indexnameB.csv
+	$BINDIR/generate-one-score.sh index-$indexnameA-$indexnameB.csv $TH
 fi
 
 
