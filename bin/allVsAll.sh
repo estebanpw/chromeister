@@ -7,8 +7,8 @@ KMER=$4
 array=()
 x=0
 
-if [ $# != 5 ]; then
-	echo "***ERROR*** Use: $0 genomesDirectory extension dim kmer th-phylo"
+if [ $# != 4 ]; then
+	echo "***ERROR*** Use: $0 genomesDirectory extension dim kmer"
 	exit -1
 fi
 

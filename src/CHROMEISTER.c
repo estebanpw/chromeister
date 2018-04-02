@@ -438,7 +438,7 @@ int main(int argc, char ** av){
 
     
 
-    a_hundreth = c_hash_holder/100;
+    a_hundreth = MAX(1,c_hash_holder/100);
     
     for(current_len = 0; current_len < c_hash_holder; current_len++){
 
