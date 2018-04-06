@@ -23,25 +23,26 @@ USAGE       Usage is described by calling ./CHROMEISTER --help
 #define PIECE_OF_DB_REALLOC 3200000 //half a gigabyte if divided by 8 bytes
 #define RANGE 2
 
-uint64_t custom_kmer = 12; // Defined as external in structs.h
+uint64_t custom_kmer = 32; // Defined as external in structs.h
 
 void init_args(int argc, char ** av, FILE ** query, FILE ** database, FILE ** out_database, uint64_t * custom_kmer, uint64_t * dimension);
 
 int main(int argc, char ** av){
     
 
-
+    /*
     //Store positions of kmers
     uint64_t n_pools_used = 0;
     //Mempool_l * mp = (Mempool_l *) malloc(MAX_MEM_POOLS*sizeof(Mempool_l));
     //if(mp == NULL) terror("Could not allocate vectors for memory pools");
     Mempool_l mp[MAX_MEM_POOLS];
     init_mem_pool_llpos(&mp[n_pools_used]);
-    llpos * aux;
+    //llpos * aux;
 
     uint64_t n_pools_used_AVL = 0;
     Mempool_AVL mp_AVL[MAX_MEM_POOLS];
     init_mem_pool_AVL(&mp_AVL[n_pools_used_AVL]);
+    */
     Tuple_hits * thit;
     
     /*
@@ -174,9 +175,27 @@ int main(int argc, char ** av){
                     [char_converter[curr_kmer[6]]][char_converter[curr_kmer[7]]][char_converter[curr_kmer[8]]]
                     [char_converter[curr_kmer[9]]][char_converter[curr_kmer[10]]][char_converter[curr_kmer[11]]];
                     
+                    /*
+                    typedef struct tuple_hits{
+                        int repetition;
+                        int hit_count;
+                        uint64_t key;
+                        uint64_t pos;
+                    } Tuple_hits;
+                    */
+
+                    if(thit->repetition == FALSE){
+                        // Then we can insert
+                        thit->hit_count = 0;
+                        thit->key = collisioned_hash(&curr_kmer[0], custom_kmer);
+                        thit->pos = current_len;
+                    }else{
+                        // Otherwise we break it
+                        thit->repetition = TRUE;
+                    }
 
                     //thit->root = insert_AVLTree(thit->root, hashOfWord(&curr_kmer[0], custom_kmer, FIXED_K), mp_AVL, &n_pools_used_AVL, current_len, mp, &n_pools_used);
-                    thit->root = insert_AVLTree(thit->root, collisioned_hash(&curr_kmer[0], custom_kmer), mp_AVL, &n_pools_used_AVL, current_len, mp, &n_pools_used);
+                    //thit->root = insert_AVLTree(thit->root, collisioned_hash(&curr_kmer[0], custom_kmer), mp_AVL, &n_pools_used_AVL, current_len, mp, &n_pools_used);
                     
                     
 
@@ -224,11 +243,11 @@ int main(int argc, char ** av){
     aprox_len_query = ftell(query);
     rewind(query);
 
-    uint64_t reallocs_hash_holder_table = 1;
-    uint64_t n_items_hash_holder_table = aprox_len_query / 5;
+    //uint64_t reallocs_hash_holder_table = 1;
+    //uint64_t n_items_hash_holder_table = aprox_len_query / 5;
 
-    Hash_holder * hash_holder_table = (Hash_holder *) calloc(n_items_hash_holder_table, sizeof(Hash_holder));
-    if(hash_holder_table == NULL) terror("Could not allocate hash holding table");
+    //Hash_holder * hash_holder_table = (Hash_holder *) calloc(n_items_hash_holder_table, sizeof(Hash_holder));
+    //if(hash_holder_table == NULL) terror("Could not allocate hash holding table");
 
     a_hundreth = (aprox_len_query/100);
     double pixel_size_query = (double) dimension / (double) aprox_len_query;
@@ -254,7 +273,7 @@ int main(int argc, char ** av){
     //To force reading from the buffer
     idx = READBUF + 1;
     c = buffered_fgetc(temp_seq_buffer, &idx, &r, query);    
-    uint64_t c_hash_holder = 0;
+    //uint64_t c_hash_holder = 0;
     
     while((!feof(query) || (feof(query) && idx < r))){
 
@@ -299,10 +318,9 @@ int main(int argc, char ** av){
                     if(word_size == custom_kmer){
 
 
-                        uint64_t hash_forward, hash_reverse;
                         //hash_forward = hashOfWord(&curr_kmer[0], custom_kmer, FIXED_K);
                         //hash_reverse = hashOfWord(&reverse_kmer[0], custom_kmer, FIXED_K);
-
+                        uint64_t hash_forward, hash_reverse;
                         hash_forward = collisioned_hash(&curr_kmer[0], custom_kmer);
                         hash_reverse = collisioned_hash(&reverse_kmer[0], custom_kmer);
                         
@@ -312,16 +330,29 @@ int main(int argc, char ** av){
                         [char_converter[curr_kmer[6]]][char_converter[curr_kmer[7]]][char_converter[curr_kmer[8]]]
                         [char_converter[curr_kmer[9]]][char_converter[curr_kmer[10]]][char_converter[curr_kmer[11]]];
 
-                        AVLTree * search = find_AVLTree(thit->root, hash_forward);
+                        //AVLTree * search = find_AVLTree(thit->root, hash_forward);
 
+                        if(thit->repetition == FALSE && hash_forward == thit->key){
+                            // Attention ::::: you were not removing the ones with count==1 earlier 
+                            thit->pos_in_y = current_len;
+                            thit->hit_count++;
+                        }
+
+                        thit = &ctidx->table[char_converter[reverse_kmer[0]]][char_converter[reverse_kmer[1]]][char_converter[reverse_kmer[2]]]
+                        [char_converter[reverse_kmer[3]]][char_converter[reverse_kmer[4]]][char_converter[reverse_kmer[5]]]
+                        [char_converter[reverse_kmer[6]]][char_converter[reverse_kmer[7]]][char_converter[reverse_kmer[8]]]
+                        [char_converter[reverse_kmer[9]]][char_converter[reverse_kmer[10]]][char_converter[reverse_kmer[11]]];
+
+                        if(thit->repetition == FALSE && hash_reverse == thit->key){
+                            // Attention ::::: you were not removing the ones with count==1 earlier 
+                            thit->pos_in_y = current_len;
+                            thit->hit_count++;
+                        }
+
+                        /*
                         if(search != NULL && search->count == 1){ //If count is two, then it is a rep
                             thit->hit_count += search->count;
-                            /*
-                                typedef struct hash_holder{
-                                uint64_t hash;
-                                uint64_t pos;
-                                AVLTree * node;
-                            */
+                            
                             hash_holder_table[c_hash_holder].pos = current_len;
                             hash_holder_table[c_hash_holder].node = search;
                             hash_holder_table[c_hash_holder].th = thit;
@@ -332,16 +363,14 @@ int main(int argc, char ** av){
                                 if(hash_holder_table == NULL) terror("Could not realloc hash holder table");
                             }
                         }
+                        */
 
                         
 
-                        thit = &ctidx->table[char_converter[reverse_kmer[0]]][char_converter[reverse_kmer[1]]][char_converter[reverse_kmer[2]]]
-                        [char_converter[reverse_kmer[3]]][char_converter[reverse_kmer[4]]][char_converter[reverse_kmer[5]]]
-                        [char_converter[reverse_kmer[6]]][char_converter[reverse_kmer[7]]][char_converter[reverse_kmer[8]]]
-                        [char_converter[reverse_kmer[9]]][char_converter[reverse_kmer[10]]][char_converter[reverse_kmer[11]]];
+                        
 
-                        search = find_AVLTree(thit->root, hash_reverse);
-
+                        //search = find_AVLTree(thit->root, hash_reverse);
+                        /*
                         if(search != NULL && search->count == 1){ //If count is two, then it is a rep
                             
                             thit->hit_count += search->count;
@@ -355,7 +384,7 @@ int main(int argc, char ** av){
                                 if(hash_holder_table == NULL) terror("Could not realloc hash holder table");
                             }
                         }
-
+                        */
 
                         // Overlapping
                         
@@ -385,11 +414,8 @@ int main(int argc, char ** av){
 
     fprintf(stdout, "Scanning hits table.\n");
 
-    uint64_t total_hits = 0;
-    uint64_t table_size = 0;
-
-    
-
+    a_hundreth = MAX(1, TOTAL_ENTRIES/100);
+    uint64_t t_computed = 0;
     uint64_t w0,w1,w2,w3,w4,w5,w6,w7,w8,w9,w10,w11;
     for(w0=0;w0<4;w0++){
         for(w1=0;w1<4;w1++){
@@ -403,9 +429,29 @@ int main(int argc, char ** av){
                                         for(w9=0;w9<4;w9++){
                                             for(w10=0;w10<4;w10++){
                                                 for(w11=0;w11<4;w11++){
-                                                    if(ctidx->table[w0][w1][w2][w3][w4][w5][w6][w7][w8][w9][w10][w11].hit_count > 0){
-                                                        total_hits += ctidx->table[w0][w1][w2][w3][w4][w5][w6][w7][w8][w9][w10][w11].hit_count;
-                                                        ++table_size;
+
+                                                    if(t_computed % a_hundreth == 0){ 
+                                                        fprintf(stdout, "\r%"PRIu64"%%...", 1+100*t_computed/TOTAL_ENTRIES); 
+                                                        fflush(stdout);
+                                                    }
+                                                    ++t_computed;
+                                                    Tuple_hits * taux = &ctidx->table[w0][w1][w2][w3][w4][w5][w6][w7][w8][w9][w10][w11];
+                                                    if(taux->hit_count == 1){
+                                                        // We plot it   
+                                                        // Convert scale to representation
+                                                        uint64_t redir_db = (uint64_t) (taux->pos / (ratio_db));
+                                                        uint64_t redir_query = (uint64_t) (taux->pos_in_y / (ratio_query));
+                                                        double i_r = i_r_fix; double j_r = j_r_fix;
+                                                        while((uint64_t) i_r >= 1 && (uint64_t) j_r >= 1){
+                                                            if((int64_t) redir_query - (int64_t) i_r > 0 && (int64_t) redir_db - (int64_t) j_r > 0){
+                                                                representation[(int64_t) redir_query - (int64_t) i_r][(int64_t) redir_db - (int64_t) j_r]++;
+                                                            }else{
+                                                                representation[redir_query][redir_db]++;
+                                                                break;
+                                                            }
+                                                            i_r -= MIN(1.0, pixel_size_query);
+                                                            j_r -= MIN(1.0, pixel_size_db);
+                                                        }                                                     
                                                     }
                                                 }
                                             }
@@ -421,20 +467,14 @@ int main(int argc, char ** av){
     }
     
 
-    //double func_distr = log((double) aprox_len_query) + log((double) remember_db_size) - log((double) total_hits);
-    //double Eprime = 2.0 + 2 * (double) aprox_len_query * exp(-func_distr); // Added extra 2 for small cases
-    //double Eprime = MAX(2.0, ((double)aprox_len_query/pow(4.0, FIXED_K)));
-    double Eprime = 2.0;
-    
-    
     //double average_hit = ((double) total_hits / (double) table_size);
     //average_hit = 2.2;
 
-
+    /*
     //fprintf(stdout, "[INFO] Total hit count is %"PRIu64" on a size of %"PRIu64" Avg = %e.\n", total_hits, table_size, average_hit);
     fprintf(stdout, "[INFO] Total hit count is %"PRIu64" on a size of %"PRIu64" E' = %e.\n", total_hits, table_size, Eprime);
 
-    fprintf(stdout, "[INFO] Generating hits.\n");
+    
 
     
 
@@ -470,190 +510,8 @@ int main(int argc, char ** av){
             }
         }
     }
-
-
-    //To force reading from the buffer
-    /*
-    idx = READBUF + 1;
-    c = buffered_fgetc(temp_seq_buffer, &idx, &r, query);    
-    fseek(query, 0, SEEK_SET);
-    
-    while((!feof(query) || (feof(query) && idx < r))){
-
-        if(c == '>'){
-            word_size = 0;
-            word_size_rev = custom_kmer-1;
-            
-
-
-
-            while(c != '\n'){ c = buffered_fgetc(temp_seq_buffer, &idx, &r, query); } //Skip ID
-                
-
-            while(c != '>' && (!feof(query) || (feof(query) && idx < r))){ //Until next id
-                c = buffered_fgetc(temp_seq_buffer, &idx, &r, query);
-                c = toupper(c);
-                if(c == 'A' || c == 'C' || c == 'G' || c == 'T'){
-                    
-                    ++current_len;
-                    if(current_len % a_hundreth == 0){ 
-                        fprintf(stdout, "\r%"PRIu64"%%...", 1+100*current_len/aprox_len_query); 
-                        //printf("%"PRIu64"%%..wasted: (%e) (%e)", 1+100*pos_in_query/aprox_len_query, (double)(wasted_cycles_forward)/CLOCKS_PER_SEC, (double)(wasted_cycles_reverse)/CLOCKS_PER_SEC); 
-                        fflush(stdout);
-                    }
-                    
-                    curr_kmer[word_size] = (unsigned char) c;
-                    ++word_size;
-
-                    switch(c){
-                        case ('A'): reverse_kmer[word_size_rev] = (unsigned)'T';
-                        break;
-                        case ('C'): reverse_kmer[word_size_rev] = (unsigned)'G';
-                        break;
-                        case ('G'): reverse_kmer[word_size_rev] = (unsigned)'C';
-                        break;
-                        case ('T'): reverse_kmer[word_size_rev] = (unsigned)'A';
-                        break;
-                    }
-                    if(word_size_rev != 0) --word_size_rev;
-
-                    
-                    if(word_size == custom_kmer){
-
-
-                        uint64_t hash_forward, hash_reverse;
-                        //hash_forward = hashOfWord(&curr_kmer[FIXED_K], custom_kmer - FIXED_K);
-                        //hash_reverse = hashOfWord(&reverse_kmer[FIXED_K], custom_kmer - FIXED_K);
-                        hash_forward = collisioned_hash(&curr_kmer[0], custom_kmer);
-                        hash_reverse = collisioned_hash(&reverse_kmer[0], custom_kmer);
-
-                        thit = &ctidx->table[char_converter[curr_kmer[0]]][char_converter[curr_kmer[1]]][char_converter[curr_kmer[2]]]
-                        [char_converter[curr_kmer[3]]][char_converter[curr_kmer[4]]][char_converter[curr_kmer[5]]]
-                        [char_converter[curr_kmer[6]]][char_converter[curr_kmer[7]]][char_converter[curr_kmer[8]]]
-                        [char_converter[curr_kmer[9]]][char_converter[curr_kmer[10]]][char_converter[curr_kmer[11]]];
-
-                        
-                        if(thit->hit_count < (uint64_t)average_hit){
-
-                            aux = find_AVLTree_llpos(thit->root, hash_forward);
-
-                            while(aux != NULL){
-
-
-                                //if(1 || xor_decomposed_hash(aux->decomp_hash, hash_forward, custom_kmer) <= max_differences){
-                                
-
-
-                                    // begin = clock();
-
-                                    // Convert scale to representation
-                                    uint64_t redir_db = (uint64_t) (aux->pos / (ratio_db));
-                                    uint64_t redir_query = (uint64_t) (current_len / (ratio_query));
-
-                                    
-
-                                    double i_r = i_r_fix; double j_r = j_r_fix;
-
-                                    
-
-                                    while((uint64_t) i_r >= 1 && (uint64_t) j_r >= 1){
-                                        
-                                        
-                                        if((int64_t) redir_query - (int64_t) i_r > 0 && (int64_t) redir_db - (int64_t) j_r > 0){
-                                            representation[(int64_t) redir_query - (int64_t) i_r][(int64_t) redir_db - (int64_t) j_r]++;
-                                            //printf("\tplus at %"PRId64", %"PRId64"\n", (int64_t) redir_query - (int64_t) i_r, (int64_t) redir_db - (int64_t) j_r);
-                                        }else{
-                                            representation[redir_query][redir_db]++;
-                                            break;
-                                        }
-                                        
-                                        i_r -= MIN(1.0, pixel_size_query);
-                                        j_r -= MIN(1.0, pixel_size_db);
-
-                                    }
-                                    
-                                //}
-                                aux = aux->next;
-                            }
-                        }
-
-
-                        thit = &ctidx->table[char_converter[reverse_kmer[0]]][char_converter[reverse_kmer[1]]][char_converter[reverse_kmer[2]]]
-                        [char_converter[reverse_kmer[3]]][char_converter[reverse_kmer[4]]][char_converter[reverse_kmer[5]]]
-                        [char_converter[reverse_kmer[6]]][char_converter[reverse_kmer[7]]][char_converter[reverse_kmer[8]]]
-                        [char_converter[reverse_kmer[9]]][char_converter[reverse_kmer[10]]][char_converter[reverse_kmer[11]]];
-
-                        
-
-                        if(thit->hit_count < (uint64_t)average_hit){
-                            
-                            aux = find_AVLTree_llpos(thit->root, hash_reverse);
-
-                            while(aux != NULL){                          
-                                
-
-                                //if(1 || xor_decomposed_hash(aux->decomp_hash, hash_reverse, custom_kmer) <= max_differences){
-
-                                    
-
-                                    // Convert scale to representation
-                                    uint64_t redir_db = (uint64_t) ( (aux->pos) / (ratio_db));
-                                    uint64_t redir_query = (uint64_t) ((current_len ) / (ratio_query));
-                                    
-                                    
-                                    
-
-                                    double i_r = i_r_fix; double j_r = j_r_fix;
-
-                                    while((uint64_t) i_r >= 1 && (uint64_t) j_r >= 1){
-                                        
-                                        if((int64_t) redir_query - (int64_t) i_r > 0 && (int64_t) redir_db + (int64_t) j_r < dimension){
-                                            representation[(int64_t) redir_query - (int64_t) i_r][(int64_t) redir_db + (int64_t) j_r]++;
-                                            //printf("\tplus at %"PRId64", %"PRId64"\n", (int64_t) redir_query - (int64_t) i_r, (int64_t) redir_db + (int64_t) j_r);
-                                        }else{
-                                            //printf("%"PRIu64",%"PRIu64"\n", redir_query, redir_db);
-                                            representation[redir_query][redir_db]++;
-                                            break;
-                                        }
-                                        i_r -= MIN(1.0, pixel_size_query);
-                                        j_r -= MIN(1.0, pixel_size_db);
-
-                                    }
-                                    
-                                    
-                                //}
-                                
-                                aux = aux->next;
-                            }
-                        }
-                        
-
-                        // Overlapping
-                        
-                        //memmove(&curr_kmer[0], &curr_kmer[1], custom_kmer-1);
-                        //memmove(&reverse_kmer[1], &reverse_kmer[0], custom_kmer-1);
-                        //--word_size;
-
-                        // Non overlapping
-                        word_size = 0;
-                        word_size_rev = custom_kmer-1;
-                    }
-
-                }else{
-                    if(c != '\n' && c != '>'){
-                        word_size = 0;
-                        word_size_rev = custom_kmer-1;
-                        ++current_len;
-                        
-                    }
-                }
-            }
-        }else{
-            c = buffered_fgetc(temp_seq_buffer, &idx, &r, query);    
-        }
-        
-    }
     */
+
 
     //end = clock();
 
@@ -682,8 +540,8 @@ int main(int argc, char ** av){
 
     
     //free(ct->table);
-    free(hash_holder_table);
-
+    //free(hash_holder_table);
+    /*
     for(i=0;i<=n_pools_used_AVL;i++){
         free(mp_AVL[i].base);
     }
@@ -691,6 +549,7 @@ int main(int argc, char ** av){
     for(i=0;i<=n_pools_used;i++){
         free(mp[i].base);
     }
+    */
     for(i=0;i<dimension;i++){
         free(representation[i]);
     }

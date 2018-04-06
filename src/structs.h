@@ -11,6 +11,7 @@
 #define POINT 4
 
 #define FIXED_K 12
+#define TOTAL_ENTRIES 16777216
 
 #define MAXLID 200
 #define ALIGN_LEN 60 //For NW alignment
@@ -53,15 +54,19 @@ typedef struct AVL_Node{
 
 // Tuple of data 
 typedef struct tuple_hits{
-    AVLTree * root;
-    uint64_t hit_count;    
+    int repetition;
+    int hit_count;
+    uint64_t key;
+    uint64_t pos;
+    uint64_t pos_in_y;
 } Tuple_hits;
 
 typedef struct hash_holder{
+    uint64_t key;
     uint64_t pos;
-    Tuple_hits * th;
-    AVLTree * node;
 } Hash_holder;
+
+
 
 //Struct for memory pool por lists
 typedef struct mempool_l{
