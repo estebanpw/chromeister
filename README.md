@@ -7,7 +7,7 @@ GCC compiler (any version that is not completely outdated should do) and the R-b
 Simply download the .zip and unzip it, or clone the repository (currently the active branch is "histo-kmer-ultra" DO NOT USE ANY OTHER).
 Then issue the following commands:
 
-cd chromeister && make all -C src
+cd chromeister/src && make all
 
 You are ready to go!
 
@@ -16,11 +16,11 @@ You are ready to go!
 There are several ways in which CHROMEISTER can be used. The simplest one is to run a 1-vs-1 comparison and then compute the score and the plot.
 To do so, use the binaries at the bin folder:
 
-CHROMEISTER -query <seqX> -db <seqY> -out dotplot.mat && Rscript compute_score.R dotplot.mat
+CHROMEISTER -query seqX -db seqY -out dotplot.mat && Rscript compute_score.R dotplot.mat
 
 This will generate the comparison matrix, the plot of the comparison with the automatic scoring and the guides to be used in an exhaustive GECKO comparison.
 
-<More to be added soon!>
+More to be added soon!
 
 
 
