@@ -140,7 +140,7 @@ void perfect_hash_to_word(unsigned char * word, uint64_t hash, uint32_t k){
 
 uint64_t collisioned_hash(const unsigned char * word, uint32_t k){
     uint64_t jIdx, value = 0;
-    for(jIdx=0;jIdx<k;jIdx+=BYTES_IN_MER){
+    for(jIdx=0;jIdx<k;jIdx+=diffuse_z){
         value += quick_pow4byLetter(k - (jIdx+1), (char) word[jIdx]);
     }
     return value;

@@ -24,8 +24,10 @@ USAGE       Usage is described by calling ./CHROMEISTER --help
 #define RANGE 2
 
 uint64_t custom_kmer = 32; // Defined as external in structs.h
+uint64_t diffuse_z = 4; // Defined as external in structs.h
 
-void init_args(int argc, char ** av, FILE ** query, FILE ** database, FILE ** out_database, uint64_t * custom_kmer, uint64_t * dimension);
+
+void init_args(int argc, char ** av, FILE ** query, FILE ** database, FILE ** out_database, uint64_t * custom_kmer, uint64_t * dimension, uint64_t * diffuse_z);
 
 int main(int argc, char ** av){
     
@@ -62,7 +64,7 @@ int main(int argc, char ** av){
     uint64_t dimension = 1000; // Default 1000 * 1000
     
     
-    init_args(argc, av, &query, &database, &out_database, &custom_kmer, &dimension);
+    init_args(argc, av, &query, &database, &out_database, &custom_kmer, &dimension, &diffuse_z);
 
 
 
@@ -525,17 +527,21 @@ int main(int argc, char ** av){
 
     //reads_per_thread = (uint64_t) (floorl((long double) data_query.n_seqs / (long double) n_threads));
     
-    fprintf(stdout, "[INFO] Writing matrix\n");
+    fprintf(stdout, "[INFO] Writing matrix.\n");
 
 
+    uint64_t unique_diffuse = 0;
     // And replace 2's with 1's 
     for(i=0; i<dimension+1; i++){
         for(j=0; j<dimension; j++){
             fprintf(out_database, "%"PRIu64" ", representation[i][j]);
+	    unique_diffuse += representation[i][j];
         }
         fprintf(out_database, "%"PRIu64"\n",  representation[i][dimension]);
+	unique_diffuse += representation[i][dimension];
     }
 
+    fprintf(stdout, "[INFO] Found %"PRIu64" unique hits for z = %"PRIu64".\n", unique_diffuse, diffuse_z);
     
 
     
@@ -559,7 +565,7 @@ int main(int argc, char ** av){
     return 0;
 }
 
-void init_args(int argc, char ** av, FILE ** query, FILE ** database, FILE ** out_database, uint64_t * custom_kmer, uint64_t * dimension){
+void init_args(int argc, char ** av, FILE ** query, FILE ** database, FILE ** out_database, uint64_t * custom_kmer, uint64_t * dimension, uint64_t * diffuse_z){
 
     int pNum = 0;
     while(pNum < argc){
@@ -567,7 +573,8 @@ void init_args(int argc, char ** av, FILE ** query, FILE ** database, FILE ** ou
             fprintf(stdout, "USAGE:\n");
             fprintf(stdout, "           CHROMEISTER -query [query] -db [database] -out [outfile]\n");
             fprintf(stdout, "OPTIONAL:\n");
-            fprintf(stdout, "           -kmer       [Integer:   k>1 (default 12)]\n");
+            fprintf(stdout, "           -kmer       [Integer:   k>1 (default 32)]\n");
+	    fprintf(stdout, "		-diffuse    [Integer:   z>0 (default 4)]\n");
             fprintf(stdout, "           -dimension  Size of the output [Integer:   d>0 (default 1000)]\n");
             fprintf(stdout, "           -out        [File path]\n");
             fprintf(stdout, "           --help      Shows help for program usage\n");
@@ -593,6 +600,12 @@ void init_args(int argc, char ** av, FILE ** query, FILE ** database, FILE ** ou
             if(*custom_kmer % BYTES_IN_MER != 0) terror("K-mer size must be a multiple of 4");
 
         }
+        if(strcmp(av[pNum], "-diffuse") == 0){
+            *diffuse_z = (uint64_t) atoi(av[pNum+1]);
+            if(*diffuse_z == 0 || *diffuse_z > 32) terror("Z must satisfy 0<z<=32");
+
+        }
+
         if(strcmp(av[pNum], "-dimension") == 0){
             *dimension = (uint64_t) atoi(av[pNum+1]);
             if(*dimension < 1) terror("Dimension must be a positive integer");

@@ -30,6 +30,7 @@
 #define MIN(x, y) (((x) <= (y)) ? (x) : (y))
 
 extern uint64_t custom_kmer;
+extern uint64_t diffuse_z;
 
 //Struct for linked list of positions
 typedef struct linked_list_pos{
