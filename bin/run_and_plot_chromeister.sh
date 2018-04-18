@@ -20,7 +20,7 @@ fi
 
 (time $BINDIR/CHROMEISTER -query $G1 -db $G2 -kmer $KMER -out $FILE1-$FILE2.mat -dimension $DIM) &> $FILE1-$FILE2.log
 
-$BINDIR/plot.R $FILE1-$FILE2.mat
+#$BINDIR/plot.R $FILE1-$FILE2.mat
 
 
 #rm $FILE1-$FILE2.mat
