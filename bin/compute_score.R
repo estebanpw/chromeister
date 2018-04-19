@@ -139,32 +139,28 @@ for(i in 1:(length(score_copy[,1]))){
 # To compute the score
 score <- 0
 pmax_pos <- which.max(score_copy[,1])
-dist_th <- 3
+dist_th <- 1.5
 besti <- 1
 bestj <- pmax_pos
-for(i in 2:len_i){
+dvec1 <- abs(which.max(score_copy[,2]) - which.max(score_copy[,1]))
+dvec2 <- abs(which.max(score_copy[,3]) - which.max(score_copy[,2]))
+dvec3 <- abs(which.max(score_copy[,4]) - which.max(score_copy[,3]))
+for(i in 5:len_i){
   
-  cmax_pos <- which.max(score_copy[,i])
-  
-  
-  
-  # taxicab distance
-  distance <- abs(i - besti) + abs(cmax_pos - bestj)
+  #print(paste(paste(paste(dvec1, dvec2), dvec3), mean(c(dvec1, dvec2, dvec3))))
+  distance <- mean(c(dvec1, dvec2, dvec3))
 
-  if(distance > dist_th){
-    
+  
+  
+  dvec1 <- dvec2
+  dvec2 <- dvec3
+  dvec3 <- abs(which.max(score_copy[,i]) - which.max(score_copy[,i-1]))
+  
+  # If there is a 0 or we are too far away just add max distance!
+  if(distance > dist_th || distance == 0){
     score <- score + len_i
-  }else{
-    score <- score + distance
   }
   
-  # save last positions
-  if(max(score_copy[,i]) != 0){
-    besti <- i
-    bestj <- cmax_pos
-  }
-  
-  pmax_pos <- cmax_pos
 }
 
 
