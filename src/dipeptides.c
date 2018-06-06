@@ -135,7 +135,7 @@ int main(int argc, char ** av){
                     //write to hash table
                     
 
-                    dipeptides[char_converter[curr_kmer[1]] * 4 + char_converter[curr_kmer[0]]]++;
+                    dipeptides[char_converter[curr_kmer[1]] + 4 * char_converter[curr_kmer[0]]]++;
                     total += 1.0;
                     
                     
@@ -166,7 +166,7 @@ int main(int argc, char ** av){
     //fprintf(stdout, "[INFO] Frequency profile generated.\n");
 
     for(i=0;i<16;i++){
-        fprintf(stdout, "$\t%Le\t->\t%"PRIu64"\n", (long double)dipeptides[i]/(long double)total, dipeptides[i]);
+        fprintf(stdout, "$,%Le,%"PRIu64"\n", (long double)dipeptides[i]/(long double)total, dipeptides[i]);
     }
     
     //begin = clock();

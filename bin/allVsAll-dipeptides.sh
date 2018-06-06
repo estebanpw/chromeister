@@ -26,7 +26,7 @@ do
 	
 
 	seqX=${array[$i]}
-	echo "----------${seqX}-----------"
+	printf ':,%s,nothing\n' "$seqX"
 
 	$BINDIR/dipeptides -db $DIR/${seqX}.$EXT
 
