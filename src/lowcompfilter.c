@@ -22,6 +22,7 @@ USAGE       ./lowcompfilter --help
 #define STARTING_SEQS 1000
 #define PIECE_OF_DB_REALLOC 3200000 //half a gigabyte if divided by 8 bytes
 #define RANGE 2
+#define ENTROPY_WINDOW 12
 
 uint64_t custom_kmer = 32; // Defined as external in structs.h
 uint64_t diffuse_z = 4; // Defined as external in structs.h
@@ -60,9 +61,21 @@ int main(int argc, char ** av){
     char_converter[(unsigned char)'G'] = 2;
     char_converter[(unsigned char)'T'] = 3;
 
-    char ww12[12], ww10[10];
+    double chances[91];
+    chances[(unsigned char)'A'] = 0.29;
+    chances[(unsigned char)'C'] = 0.21;
+    chances[(unsigned char)'G'] = 0.21;
+    chances[(unsigned char)'T'] = 0.29;
 
-    ww12[0] = ww10[0] = '\0';
+    double log_chances[91];
+    log_chances[(unsigned char)'A'] = log(chances[(unsigned char)'A']) / log(2);
+    log_chances[(unsigned char)'C'] = log(chances[(unsigned char)'C']) / log(2);
+    log_chances[(unsigned char)'G'] = log(chances[(unsigned char)'G']) / log(2);
+    log_chances[(unsigned char)'T'] = log(chances[(unsigned char)'T']) / log(2);
+
+    double first_entropies[ENTROPY_WINDOW];
+    double current_entropy = 0;
+    int added_entropy;
     
     //Variables to account for positions
     //Print info
@@ -121,14 +134,16 @@ int main(int argc, char ** av){
     Initial_D * t5 = (Initial_D *) calloc(ts5, sizeof(Initial_D));
     Initial_D * t6 = (Initial_D *) calloc(ts6, sizeof(Initial_D));
 
-
+    // Add entropy filter
+    // AAATAAAATAAAT
 
     c = buffered_fgetc(temp_seq_buffer, &idx, &r, database);
     huge_seq[write_pos++] = c;
     while((!feof(database) || (feof(database) && idx < r))){
 
         if(c == '>'){
-            
+            current_entropy = 0;
+            added_entropy = 0;
             while(c != '\n'){ c = buffered_fgetc(temp_seq_buffer, &idx, &r, database); huge_seq[write_pos++] = c; }
             while(c != '>' && (!feof(database) || (feof(database) && idx < r))){ //Until next id
                 c = buffered_fgetc(temp_seq_buffer, &idx, &r, database);
@@ -136,6 +151,9 @@ int main(int argc, char ** av){
                 huge_seq[write_pos++] = c;
                 if(c == 'A' || c == 'C' || c == 'G' || c == 'T'){
                     curr_kmer[word_size] = (unsigned char) c;
+                    first_entropies[added_entropy] = chances[(unsigned char) c] * log_chances[(unsigned char)c];
+                    current_entropy += first_entropies[added_entropy];
+                    ++added_entropy;
                     if(current_cut == 0) current_cut++;
                     else{
                         if(c == curr_kmer[word_size-1]) current_cut++;
@@ -156,10 +174,21 @@ int main(int argc, char ** av){
                     if(word_size < custom_kmer) ++word_size;
                     ++current_len;
                 // Wasted kmers 
-                }else{ if(c != '\n' && c != '>'){ word_size = 0; ++current_len; current_cut = 0; } }
+                }else{ if(c != '\n' && c != '>'){ word_size = 0; ++current_len; current_cut = 0; current_entropy = 0; added_entropy = 0; } }
                 
 
-                
+                if(added_entropy == ENTROPY_WINDOW){
+                    current_entropy = 0;
+                    for(i=0;i<ENTROPY_WINDOW;i++){
+                        current_entropy += first_entropies[i];
+                    }
+                    printf("Entropy of %.12s -> %e\n", curr_kmer, -current_entropy);
+
+                    current_entropy -= first_entropies[0];
+                    memmove(&first_entropies[0], &first_entropies[1], ENTROPY_WINDOW-1);
+                    --added_entropy;
+                    getchar();
+                }
                 
                 
                 if(word_size == 12){
@@ -186,7 +215,7 @@ int main(int argc, char ** av){
                                 switch(i){
                                     case 1: {
                                         hash = hashOfWord(&curr_kmer[j], 1, 0);
-                                        //printf("hash: %"PRIu64" ->attempting insert %.5s at %u prior pos is (%u) result pos is = %u; curr_rep = %u\n", hash, &curr_kmer[j], j, t5[hash].p, t5[hash].p + 4, t5[hash].r);
+                                        //printf("(T1)hash: %"PRIu64" ->attempting insert %.1s at %u prior pos is (%u) result pos is = %u; curr_rep = %u\n", hash, &curr_kmer[j], j, t5[hash].p, t5[hash].p + 4, t5[hash].r);
                                         if(t1[hash].first == 0) n_rep = ++(t1[hash].r); else if(t1[hash].p <= (unsigned char) j) ++(t1[hash].r); 
                                         t1[hash].first = 1;
                                         n_rep = (t1[hash].r);
@@ -196,7 +225,7 @@ int main(int argc, char ** av){
                                     } break;
                                     case 2: { 
                                         hash = hashOfWord(&curr_kmer[j], 2, 0);
-                                        //if(debug == 1) { printf("hash: %"PRIu64" ->attempting insert %.2s at %u prior pos is (%u) result pos is = %u; curr_rep = %u\n", hash, &curr_kmer[j], j, t2[hash].p, t2[hash].p + 2, t2[hash].r); getchar(); }
+                                        //printf("(T2)hash: %"PRIu64" ->attempting insert %.2s at %u prior pos is (%u) result pos is = %u; curr_rep = %u\n", hash, &curr_kmer[j], j, t2[hash].p, t2[hash].p + 2, t2[hash].r); getchar();
                                         if(t2[hash].first == 0) { n_rep = ++(t2[hash].r); if(debug==1) printf("Done\n"); }else if(t2[hash].p <= (unsigned char) j){  ++(t2[hash].r); if(debug==1) printf("DONE\n") ;} 
                                         t2[hash].first = 1;
                                         n_rep = (t2[hash].r);
@@ -207,7 +236,7 @@ int main(int argc, char ** av){
                                     case 5: { 
                                         
                                         hash = hashOfWord(&curr_kmer[j], 5, 0);
-                                        //printf("hash: %"PRIu64" ->attempting insert %.5s at %u prior pos is (%u) result pos is = %u; curr_rep = %u\n", hash, &curr_kmer[j], j, t5[hash].p, t5[hash].p + 4, t5[hash].r);
+                                        //printf("(T5)hash: %"PRIu64" ->attempting insert %.5s at %u prior pos is (%u) result pos is = %u; curr_rep = %u\n", hash, &curr_kmer[j], j, t5[hash].p, t5[hash].p + 4, t5[hash].r);
                                         if(t5[hash].first == 0) n_rep = ++(t5[hash].r); else if(t5[hash].p <= (unsigned char) j) ++(t5[hash].r); 
                                         t5[hash].first = 1;
                                         n_rep = (t5[hash].r);
@@ -223,7 +252,7 @@ int main(int argc, char ** av){
                                 switch(i){
                                     case 3: { 
                                         hash = hashOfWord(&curr_kmer[j], 3, 0);
-                                        //printf("hash: %"PRIu64" ->attempting insert %.5s at %u prior pos is (%u) result pos is = %u; curr_rep = %u\n", hash, &curr_kmer[j], j, t5[hash].p, t5[hash].p + 4, t5[hash].r);
+                                        //printf("(T3)hash: %"PRIu64" ->attempting insert %.3s at %u prior pos is (%u) result pos is = %u; curr_rep = %u\n", hash, &curr_kmer[j], j, t5[hash].p, t5[hash].p + 4, t5[hash].r);
                                         if(t3[hash].first == 0) n_rep = ++(t3[hash].r); else if(t3[hash].p <= (unsigned char) j) ++(t3[hash].r); 
                                         t3[hash].first = 1;
                                         n_rep = (t3[hash].r);
@@ -233,7 +262,7 @@ int main(int argc, char ** av){
                                     } break;
                                     case 4: { 
                                         hash = hashOfWord(&curr_kmer[j], 4, 0);
-                                        //printf("hash: %"PRIu64" ->attempting insert %.5s at %u prior pos is (%u) result pos is = %u; curr_rep = %u\n", hash, &curr_kmer[j], j, t5[hash].p, t5[hash].p + 4, t5[hash].r);
+                                        //printf("(T4)hash: %"PRIu64" ->attempting insert %.4s at %u prior pos is (%u) result pos is = %u; curr_rep = %u\n", hash, &curr_kmer[j], j, t5[hash].p, t5[hash].p + 4, t5[hash].r);
                                         if(t4[hash].first == 0) n_rep = ++(t4[hash].r); else if(t4[hash].p <= (unsigned char) j) ++(t4[hash].r); 
                                         t4[hash].first = 1;
                                         n_rep = (t4[hash].r);
@@ -243,7 +272,7 @@ int main(int argc, char ** av){
                                     } break;
                                     case 6: { 
                                         hash = hashOfWord(&curr_kmer[j], 6, 0);
-                                        //printf("hash: %"PRIu64" ->attempting insert %.5s at %u prior pos is (%u) result pos is = %u; curr_rep = %u\n", hash, &curr_kmer[j], j, t5[hash].p, t5[hash].p + 4, t5[hash].r);
+                                        //printf("(T6)hash: %"PRIu64" ->attempting insert %.6s at %u prior pos is (%u) result pos is = %u; curr_rep = %u\n", hash, &curr_kmer[j], j, t5[hash].p, t5[hash].p + 4, t5[hash].r);
                                         if(t6[hash].first == 0) n_rep = ++(t6[hash].r); else if(t6[hash].p <= (unsigned char) j) ++(t6[hash].r); 
                                         t6[hash].first = 1;
                                         n_rep = (t6[hash].r);
