@@ -14,12 +14,19 @@ path_mat = args[1]
 fancy_name <- strsplit(path_mat, "/")
 fancy_name <- (fancy_name[[1]])[length(fancy_name[[1]])]
 
+# Read sequence lenghts
+con <- file(path_mat,"r")
+seq_lengths <- readLines(con, n=2)
+seq_x_len <- as.numeric(seq_lengths[1])
+seq_y_len <- as.numeric(seq_lengths[2])
+close(con)
 
 
+data <- as.matrix(read.csv(path_mat, sep = " ", skip=2))
 
-
-data <- as.matrix(read.csv(path_mat, sep = " "))
-
+# Get sequence names
+name_x <- strsplit(fancy_name, "-")[[1]][1]
+name_y <- strsplit(fancy_name, "-")[[1]][2]
 
 # Max of columns
 
@@ -167,9 +174,15 @@ for(i in 5:len_i){
 score <- (score/(len_i^2))
 print(score)
 
+coords1 <- round(seq(from=0, to=1, by=0.2)*seq_x_len)
+coords2 <- round(seq(from=0, to=1, by=0.2)*seq_y_len)
+
+final_image <- apply((t(score_copy)), 2, rev)
 
 png(paste(path_mat, ".filt.png", sep=""), width = length(data[,1]), height = length(data[,1]))
-image(t(score_copy), col = grey(seq(1, 0, length = 256)), xaxt='n', yaxt='n', main = paste(fancy_name, paste("filt. score=", score)))
+image(t(final_image), col = grey(seq(1, 0, length = 256)), xaxt='n', yaxt='n', main = paste(fancy_name, paste("filt. score=", score)), xlab = name_x, ylab = name_y, axes = FALSE)
+axis(1, tick = TRUE, labels = (coords1), at = c(0.0, 0.2, 0.4, 0.6, 0.8, 1))
+axis(2, tick = TRUE, labels = rev(coords2), at = c(0.0, 0.2, 0.4, 0.6, 0.8, 1))
 dev.off()
 
 
@@ -177,6 +190,7 @@ dev.off()
 
 # To clear it in case it existed
 write(c(paste("X", "Y")), file = paste("hits-XY-", paste(fancy_name, ".hits", sep=""), sep=""), append = FALSE, sep = "\n")
+
 
 for(i in 1:(length(score_copy[,1]))){
   for(j in 1:(length(score_copy[1,]))){
