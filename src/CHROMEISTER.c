@@ -99,6 +99,7 @@ int main(int argc, char ** av){
 
     fseek(database, 0, SEEK_END);
     uint64_t aprox_len_query = ftell(database);
+    uint64_t aprox_len_db = aprox_len_query;
     rewind(database);
 
     uint64_t a_hundreth = (aprox_len_query/100);
@@ -531,7 +532,10 @@ int main(int argc, char ** av){
 
 
     uint64_t unique_diffuse = 0;
-    // And replace 2's with 1's 
+	fprintf(out_database, "%"PRIu64"\n", aprox_len_query);
+    fprintf(out_database, "%"PRIu64"\n", aprox_len_db);
+     // And replace 2's with 1's 
+	
     for(i=0; i<dimension+1; i++){
         for(j=0; j<dimension; j++){
             fprintf(out_database, "%"PRIu64" ", representation[i][j]);
