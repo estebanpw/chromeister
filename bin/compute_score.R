@@ -8,6 +8,269 @@ if(length(args) < 1){
 
 
 
+
+
+
+growing_regions <- function(mat, reward = 6, penalty = 5, sidePenalty = 3, MAXHSPS = 500, TH = 10, WSIZE = 7){
+
+  #write(mat, file ="data.txt", ncolumns = 200)
+  
+  len <- min(length(mat[1,]), length(mat[,1]))
+  HSPS <- matrix(0, nrow=MAXHSPS, ncol=5)
+  idx <- 1
+  lH <- round(WSIZE/2) - 1
+  rH <- round(WSIZE/2) + 1
+  
+  
+  #print(paste("lH: ", lH, "rH: ", rH))
+  
+  if(WSIZE %% 2 == 0){
+    print("WSIZE MUST BE ODD")
+    stop()
+  }
+  
+  
+  
+  i <- 1
+  #readline(prompt="Press [enter] to continue")
+  while(i < len){
+
+    value <- max(mat[i,]) * reward
+    if(value == 0) i <- i + 1
+    pos <- which.max(mat[i,])
+    # these two hold ending frag
+    endfrag <- pos
+    j <- i
+    count_penalties <- 1
+
+    #print("-----------------")
+
+    while(value > 0 && j < len){
+
+      #print(paste("took values ", j, endfrag, "which have score of ", mat[j, endfrag], "current value is: ", value))
+      
+      
+      
+
+      # Reset position used
+      
+      mat[max(1,j-1), max(1,endfrag-2)] <- 0
+      mat[max(1,j-1), max(1,endfrag-1)] <- 0
+      mat[max(1,j-1), endfrag] <- 0
+      mat[max(1,j-1), min(len, endfrag+1)] <- 0
+      mat[max(1,j-1), min(len, endfrag+2)] <- 0
+      
+      mat[j, max(1,endfrag-2)] <- 0
+      mat[j, max(1,endfrag-1)] <- 0
+      mat[j, endfrag] <- 0
+      mat[j, min(len, endfrag+1)] <- 0
+      mat[j, min(len, endfrag+2)] <- 0
+      
+      #print(paste("Erasing: (",max(1,j-1), max(1,endfrag-2),")(",max(1,j-1), max(1,endfrag-1),")(",max(1,j-1), endfrag,
+      #            ")(",max(1,j-1), min(len, endfrag+1),")(",max(1,j-1), min(len, endfrag+2),")(",j, max(1,endfrag-2),
+      #            ")(",j, max(1,endfrag-1),")(",j, endfrag,")(",j, min(len, endfrag+1),")(",j, min(len, endfrag+2),")"))
+      
+      
+      # Go for next
+      j <- j + 1
+      # Check next, could be reverse or forward
+      mleft <- max(1, endfrag-lH)
+      mright <- min(len, endfrag+lH)
+      window <- mat[j, mleft:mright]
+      
+
+      #print(paste("mleft: ", mleft, "mright", mright, "j is: ", j))
+      #print(window)
+
+      v <- max(window)
+      selected <- which.max(window)
+      # Make it rather go diagonally
+      #print(paste("WIndow len: ", length(window)))
+      chose_diagonal <- FALSE
+      if(length(window) == WSIZE && v == window[lH]){
+        selected <- lH
+        chose_diagonal <- TRUE
+      }
+      
+      if(length(window) == WSIZE && v == window[rH]){
+        selected <- rH
+        chose_diagonal <- TRUE
+      }
+      
+      #print(paste("Selected value be like ", selected))
+      
+
+      if(v != 0){
+        
+        
+        
+        endfrag <- (mleft + selected ) # To make the indexing
+        if(length(window) == WSIZE) endfrag <- endfrag - 1
+        endfrag <- max(1, min(len, endfrag))
+        #print(paste("\t", " endfragnew = ", endfrag, "max of window: ", max(window), "on position", which.max(window)))
+      }
+
+      #print(paste("Chose diagonal is ", chose_diagonal))
+      
+      # If no similarity is found
+      if(v == 0){
+        value <- value - count_penalties * penalty
+        count_penalties <- count_penalties + 1
+        #print("Got penalty #########")
+        
+      }else{
+        
+        # Similarity is found
+        
+        if(!chose_diagonal){
+          value <- value + count_penalties * (-sidePenalty)
+          count_penalties <- count_penalties + 1
+          #print("Got SIDE penalty @@@ #########")
+        }else{
+          count_penalties <- 1
+          value <- value + reward
+          #print("Got reward thou #########")
+        }
+        
+      }
+      #readline(prompt="Press [enter] to continue")
+
+    }
+    # Check len of frag
+    if(j-i > TH){
+      # HSPS[idx, 1] <- i
+      # HSPS[idx, 2] <- pos
+      # HSPS[idx, 3] <- j
+      # HSPS[idx, 4] <- endfrag
+      # HSPS[idx, 5] <- abs(i-j)
+      
+      HSPS[idx, 1] <- pos
+      HSPS[idx, 2] <- i
+      HSPS[idx, 3] <- endfrag
+      HSPS[idx, 4] <- j
+      HSPS[idx, 5] <- abs(i-j)
+      
+      
+      
+      #print(paste("ACCEPT", i, pos, j, endfrag, "x-y", j-i, abs(endfrag-pos), sep = " "))
+      idx <- idx + 1
+    }else{
+      #print("REJECT")
+    }
+    # This will prevent overlappign lines, I think
+    #i <- j
+    
+    if(idx == MAXHSPS) break
+  }
+  
+  
+  
+  
+  return (HSPS)
+}
+
+detect_events <- function(HSPS, sampling){
+  
+  DIAG_SEPARATION <- 10
+  # same as HSPS but adding the event
+  output <- matrix(0, nrow=length(HSPS[,1]), ncol=1+length(HSPS[1,]))
+  colnames(output) <- c("x1", "y1", "x2", "y2", "len", "event")
+  j <- 0
+  for(i in 1:(length(HSPS[,1]))){
+    
+    if(sum(HSPS[i,]) > 0){
+      j <- j + 1
+      is_inverted = FALSE
+      is_diagonal = TRUE
+      
+      if(HSPS[i,1] > HSPS[i,3]) is_inverted = TRUE
+      if(abs(HSPS[i,1] - HSPS[i,2]) > DIAG_SEPARATION && abs(HSPS[i,3] - HSPS[i,4]) > DIAG_SEPARATION) is_diagonal = FALSE
+      
+      output[i,1] <- HSPS[i,1] * sampling
+      output[i,2] <- HSPS[i,2] * sampling
+      output[i,3] <- HSPS[i,3] * sampling
+      output[i,4] <- HSPS[i,4] * sampling
+      output[i,5] <- HSPS[i,5] * sampling
+      
+      if(is_diagonal) output[i,6] <- "synteny block"
+      if(is_diagonal && is_inverted) output[i,6] <- "inversion"
+      if(!is_diagonal && !is_inverted) output[i,6] <- "transposition"
+      if(!is_diagonal && is_inverted) output[i,6] <-"inverted transposition"
+    }
+    
+    
+  }
+  
+  return (output[1:j,])
+}
+
+
+
+paint_frags <- function(HSPS, l, sampling){
+  
+  plot(c(HSPS[1,1]*sampling, HSPS[1,3]*sampling), c(HSPS[1,2]*sampling, HSPS[1,4]*sampling), xlim = c(1,l*sampling), ylim = c(1,l*sampling), type="l", xlab="X-genome",ylab="Y-genome")
+  for(i in 2:length(HSPS[,1])){
+    if(sum(HSPS[i,]) > 0){
+      lines(c(HSPS[i,1]*sampling, HSPS[i,3]*sampling), c(HSPS[i,2]*sampling, HSPS[i,4]*sampling))
+    }
+  }
+}
+
+supersample <- function(mat, upscale){
+  l <- min(length(mat[1,]), length(mat[,1]))
+  size <- round(l*upscale)
+  m <- matrix(0, nrow=size, ncol=size)
+  
+  for(i in 1:size){
+    for(j in 1:size){
+      mleft <- max(1, i-1)
+      mright <- min(l, i+1)
+      mup <- max(1, j-1)
+      mdown <- min(l, j+1)
+      
+      ri <- max(1, i/upscale)
+      rj <- max(1, j/upscale)
+      
+      if(mat[ri, rj] > 0){
+        m[i, j] <- 1
+      }
+    }
+  }
+  return (m)
+}
+
+
+downsample <- function(mat, downscale){
+  l <- min(length(mat[1,]), length(mat[,1]))
+  size <- round(l/downscale)
+  m <- matrix(0, nrow=size, ncol=size)
+  
+  for(i in 1:l){
+    for(j in 1:l){
+      mup <- max(1, i-1)
+      mdown <- min(l, i+1)
+      mleft <- max(1, j-1)
+      mright <- min(l, j+1)
+      
+      #print(paste("Matrix at ", i, j))
+      #print(mat[mup:mdown, mleft:mright])
+      
+      if(sum(mat[mup:mdown, mleft:mright]) > 0){
+        #print(paste("goes to ", round(i/downscale), round(j/downscale)))
+        m[round(i/downscale), round(j/downscale)] <- 1
+      }
+    }
+  }
+  
+  return (m)
+}
+
+
+
+
+
+
+
 path_mat = args[1]
 
 
@@ -173,6 +436,20 @@ for(i in 5:len_i){
 
 score <- (score/(len_i^2))
 print(score)
+
+
+sampling_value <- 5
+submat <- downsample(score_copy, sampling_value)
+m <- growing_regions((submat), WSIZE = 7, TH = 5, penalty = 15)
+events <- detect_events(m, sampling_value)
+
+write(as.character(c(seq_x_len, seq_y_len)), file=paste(fancy_name,".events.txt"), append = TRUE, sep =",", ncolumns=2)
+write(as.character(c("x1", "y1", "x2", "y2", "len", "event")), file=paste(fancy_name,".events.txt"), append = TRUE, sep =",", ncolumns=6)  
+for(i in 1:length(events[,1])){
+  write(as.character(events[i,]), file=paste(fancy_name,".events.txt"), append = TRUE, sep =",", ncolumns=6)  
+}
+
+
 
 coords1 <- round(seq(from=0, to=1, by=0.2)*seq_x_len)
 coords2 <- round(seq(from=0, to=1, by=0.2)*seq_y_len)
