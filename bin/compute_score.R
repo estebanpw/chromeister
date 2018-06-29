@@ -443,8 +443,8 @@ submat <- downsample(score_copy, sampling_value)
 m <- growing_regions((submat), WSIZE = 7, TH = 5, penalty = 15)
 events <- detect_events(m, sampling_value)
 
-write(as.character(c(seq_x_len, seq_y_len)), file=paste(fancy_name,".events.txt"), append = TRUE, sep =",", ncolumns=2)
-write(as.character(c("x1", "y1", "x2", "y2", "len", "event")), file=paste(fancy_name,".events.txt"), append = TRUE, sep =",", ncolumns=6)  
+write(as.character(c(seq_x_len, seq_y_len)), file=paste(fancy_name,".events.txt", sep=""), append = TRUE, sep =",", ncolumns=2)
+write(as.character(c("x1", "y1", "x2", "y2", "len", "event")), file=paste(fancy_name,".events.txt", sep=""), append = TRUE, sep =",", ncolumns=6)  
 for(i in 1:length(events[,1])){
   write(as.character(events[i,]), file=paste(fancy_name,".events.txt"), append = TRUE, sep =",", ncolumns=6)  
 }
