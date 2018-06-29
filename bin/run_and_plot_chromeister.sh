@@ -18,7 +18,7 @@ fi
 
 
 (time $BINDIR/CHROMEISTER -query $G1 -db $G2 -kmer 32 -out $FILE1-$FILE2.mat -dimension $DIM) &> $FILE1-$FILE2.log
-Rscript $BINDIR/compute_score.R $FILE1-$FILE2.mat
+Rscript $BINDIR/compute_score.R $FILE1-$FILE2.mat $DIM
 
 #$BINDIR/plot.R $FILE1-$FILE2.mat
 

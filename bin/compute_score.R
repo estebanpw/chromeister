@@ -2,8 +2,8 @@
 #!/usr/bin/env Rscript
 args = commandArgs(trailingOnly=TRUE)
 
-if(length(args) < 1){
-  stop("USE: Rscript --vanilla plot.R <matrix>")
+if(length(args) < 2){
+  stop("USE: Rscript --vanilla plot.R <matrix> <matsize>")
 }
 
 
@@ -293,8 +293,8 @@ name_y <- strsplit(fancy_name, "-")[[1]][2]
 
 # Max of columns
 
-len_i <- 1000
-len_j <- 1000
+len_i <- as.numeric(args[2])
+len_j <- as.numeric(args[2])
 
 
 score_density <- data
