@@ -26,6 +26,8 @@ USAGE       Usage is described by calling ./CHROMEISTER --help
 uint64_t custom_kmer = 32; // Defined as external in structs.h
 uint64_t diffuse_z = 4; // Defined as external in structs.h
 
+uint64_t get_seq_len(FILE * f);
+
 
 void init_args(int argc, char ** av, FILE ** query, FILE ** database, FILE ** out_database, uint64_t * custom_kmer, uint64_t * dimension, uint64_t * diffuse_z);
 
@@ -75,12 +77,12 @@ int main(int argc, char ** av){
     char_converter[(unsigned char)'T'] = 3;
 
     
-    //Variables to account for positions
-    //Print info
+    // Variables to account for positions
+    // Print info
     fprintf(stdout, "[INFO] Loading database\n");
-    //Variables to read kmers
+    // Variables to read kmers
     char c = 'N'; //Char to read character
-    //Current length of array and variables for the buffer
+    // Current length of array and variables for the buffer
     uint64_t idx = 0, r = 0;
     
     //Vector to read in batches
@@ -97,10 +99,14 @@ int main(int argc, char ** av){
         if(representation[i] == NULL) terror("Could not allocate second loop representation");
     }
 
+    /*
     fseek(database, 0, SEEK_END);
     uint64_t aprox_len_query = ftell(database);
     uint64_t aprox_len_db = aprox_len_query;
     rewind(database);
+    */
+    uint64_t aprox_len_query = get_seq_len(database);
+    uint64_t aprox_len_db = aprox_len_query;
 
     uint64_t a_hundreth = (aprox_len_query/100);
 
@@ -242,9 +248,11 @@ int main(int argc, char ** av){
 
 
     // Get file length
-    fseek(query, 0, SEEK_END);
-    aprox_len_query = ftell(query);
-    rewind(query);
+    
+    //fseek(query, 0, SEEK_END);
+    //aprox_len_query = ftell(query);
+    //rewind(query);
+    aprox_len_query = get_seq_len(query);
 
     //uint64_t reallocs_hash_holder_table = 1;
     //uint64_t n_items_hash_holder_table = aprox_len_query / 5;
@@ -621,3 +629,23 @@ void init_args(int argc, char ** av, FILE ** query, FILE ** database, FILE ** ou
     if(*query==NULL || *database==NULL || *out_database==NULL) terror("A query, database and output file is required");
 }
 
+uint64_t get_seq_len(FILE * f) {
+    char c = '\0';
+    uint64_t l = 0;
+
+    while(!feof(f)){
+        c = getc(f);
+
+        if(c == '>'){
+            while(c != '\n') c = getc(f);
+        }
+        c = toupper(c);
+        if(c >= 'A' && c <= 'Z'){
+            ++l;
+        }
+    }
+
+
+    rewind(f);
+    return l;
+}
