@@ -13,7 +13,10 @@ done
 
 EXT="mat"
 EXTSCORE="scr.txt"
-EXTGENERAL=".fa.fasta"
+EXTGENERAL=".fasta"
+
+# data is like
+# HOMSA.Chr.10.fasta
 
 
 
@@ -22,16 +25,14 @@ if [ $# != 4 ]; then
 	exit -1
 fi
 
-rm $DIR/*.log
-
-for i in $DIR/*.scr; do mv $i $i.txt; done
 
 rm $OUT
 
 for elem in $(ls -d $DIR/*.$EXT | awk -F "/" '{print $NF}' | awk -F ".$EXT" '{print $1}')
 do
-	IFS='-', read -a splits <<< "$elem"
-	IFS='.', read -a getnum <<< "$elem"
+
+	IFS='-', read -a splits <<< "$elem"   # yields MUSMU.Chr.8.fasta and  MUSMU.Chr.Y.fasta
+	IFS='.', read -a getnum <<< "$elem"   # yields MUSMU  Chr  8  fasta  and MUSMU Chr Y fasta
 
 	scorepath=$(basename $elem .mat).$EXTSCORE
 
@@ -51,23 +52,13 @@ do
 	#score="$(head -1 $DIR/$scorepath)"
 
 	counter=0
-	numX=0
-	numY=0
-	for i in "${getnum[@]}" 
-	do
-		counter=`expr $counter + 1`
-		if [ "$numX" -eq 0 ] && [ "$i" == "chromosome" ]; then
-			numX=$counter
-			continue
-		fi
-		if [ "$numX" -ne 0 ] && [ "$i" == "chromosome" ]; then
-			numY=$counter
-		fi
-
-	done
+	numX=${getnum[2]}
+	numY=${getnum[5]}
 
 
-	echo "$(basename ${splits[0]} $EXTGENERAL),$(basename ${splits[1]} ${EXTGENERAL}.mat),$ID1,$ID2,$elem.$EXT.filt.png,${getnum[${numX}]},${getnum[${numY}]},$score" >> $OUT
+
+
+	echo "$(basename ${splits[0]} $EXTGENERAL),$(basename ${splits[1]} ${EXTGENERAL}),$ID1,$ID2,$elem.$EXT.filt.png,$numX,$numY,$score" >> $OUT
 
 done
 

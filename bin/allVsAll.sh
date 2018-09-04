@@ -36,7 +36,7 @@ do
 				if [[ ! -f ${seqX}.$EXT-${seqY}.$EXT.mat ]]; then
 					
 					$BINDIR/run_and_plot_chromeister.sh $DIR/${seqX}.$EXT $DIR/${seqY}.$EXT $KMER $DIM
-					Rscript $BINDIR/compute_score.R $seqX.$EXT-$seqY.$EXT.mat > $seqX.$EXT-$seqY.$EXT.scr.txt
+					#Rscript $BINDIR/compute_score.R $seqX.$EXT-$seqY.$EXT.mat $DIM > $seqX.$EXT-$seqY.$EXT.scr.txt
 				fi
 			
 		fi

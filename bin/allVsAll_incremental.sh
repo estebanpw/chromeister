@@ -4,12 +4,11 @@ DIR2=$2
 EXT=$3
 DIM=$4
 KMER=$5
-TH=$6
 
 
 
-if [ $# != 6 ]; then
-	echo "***ERROR*** Use: $0 genomesDirectory1 genomesDirectory2 extension dim kmer th-phylo"
+if [ $# != 5 ]; then
+	echo "***ERROR*** Use: $0 genomesDirectory1 genomesDirectory2 extension dim kmer"
 	exit -1
 fi
 
@@ -18,8 +17,6 @@ indexnameB=$(basename "$DIR2")
 
 BINDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-mkdir $indexnameA-$indexnameB
-cd $indexnameA-$indexnameB
 
 array=()
 x=0
@@ -52,21 +49,18 @@ do
 				
 				#echo "$BINDIR/run_and_plot_chromeister.sh $DIR/${seqX}.$EXT $DIR/${seqY}.$EXT 30 10000"
 				if [[ ! -f ${seqX}.$EXT-${seqY}.$EXT.mat ]]; then
-					
 					$BINDIR/run_and_plot_chromeister.sh $DIR/${seqX}.$EXT $DIR2/${seqY}.$EXT $KMER $DIM
-					Rscript $BINDIR/compute_score.R $seqX.$EXT-$seqY.$EXT.mat > $seqX.$EXT-$seqY.$EXT.scr.txt
 				fi
 			
 	done
 done
 
+
 # generate index
 if [[ ! -f index.csv.temp ]] && [ ! -f index-$indexnameA-$indexnameB.csv  ]; then
 	
-	echo "Launching... $BINDIR/index_chromeister.sh index-$indexnameA-$indexnameB.csv $DIR $DIR2"
-	$BINDIR/index_chromeister.sh . index-$indexnameA-$indexnameB.csv $DIR $DIR2
-	echo "Launching... $BINDIR/generate-one-score.sh index-$indexnameA-$indexnameB.csv"
-	$BINDIR/generate-one-score.sh index-$indexnameA-$indexnameB.csv $TH
+	echo "Launching... $BINDIR/index_chromeister_solo.sh . index-$indexnameA-$indexnameB.csv $DIR $DIR2"
+	$BINDIR/index_chromeister_solo.sh . index-$indexnameA-$indexnameB.csv $DIR $DIR2
 fi
 
 
