@@ -40,6 +40,10 @@ do
 	sed -i "s/\[1\]//g" $DIR/$scorepath
 
 	score=$( head -1  $DIR/$scorepath)
+	len1=$( head -1 $DIR/$elem.mat.events.txt | awk -F="," '{print $1}')
+	len2=$( head -1 $DIR/$elem.mat.events.txt | awk -F="," '{print $2}')
+
+	
 
 	file1=${splits[0]}
 	file2=$(basename ${splits[1]} .mat)
@@ -58,14 +62,14 @@ do
 
 
 
-	echo "$(basename ${splits[0]} $EXTGENERAL),$(basename ${splits[1]} ${EXTGENERAL}),$ID1,$ID2,$elem.$EXT.filt.png,$numX,$numY,$score" >> $OUT
+	echo "$(basename ${splits[0]} $EXTGENERAL),$(basename ${splits[1]} ${EXTGENERAL}),$ID1,$ID2,$elem.$EXT.filt.png,$numX,$numY,$score,$len1 $len2" >> $OUT
 
 done
 
 sort -k5,5n -k6,6n -o $OUT $OUT 
 
 
-sed -i '1iSpX, SpY, IDX, IDY, IMG, CHNumberX, CHNumberY, Score' $OUT
+sed -i '1iSpX, SpY, IDX, IDY, IMG, CHNumberX, CHNumberY, Score, LengthX, LengthY' $OUT
 
 rm index.csv.temp
 
