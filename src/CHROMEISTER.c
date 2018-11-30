@@ -332,21 +332,28 @@ int main(int argc, char ** av){
                         //hash_forward = hashOfWord(&curr_kmer[0], custom_kmer, FIXED_K);
                         //hash_reverse = hashOfWord(&reverse_kmer[0], custom_kmer, FIXED_K);
                         uint64_t hash_forward, hash_reverse;
-                        hash_forward = collisioned_hash(&curr_kmer[0], custom_kmer);
-                        hash_reverse = collisioned_hash(&reverse_kmer[0], custom_kmer);
+                        //hash_forward = collisioned_hash(&curr_kmer[0], custom_kmer);
+                        //hash_reverse = collisioned_hash(&reverse_kmer[0], custom_kmer);
                         
-
+			
                         thit = &ctidx->table[char_converter[curr_kmer[0]]][char_converter[curr_kmer[1]]][char_converter[curr_kmer[2]]]
                         [char_converter[curr_kmer[3]]][char_converter[curr_kmer[4]]][char_converter[curr_kmer[5]]]
                         [char_converter[curr_kmer[6]]][char_converter[curr_kmer[7]]][char_converter[curr_kmer[8]]]
                         [char_converter[curr_kmer[9]]][char_converter[curr_kmer[10]]][char_converter[curr_kmer[11]]];
+			
 
                         //AVLTree * search = find_AVLTree(thit->root, hash_forward);
 
-                        if(thit->repetition == FALSE && hash_forward == thit->key){
-                            // Attention ::::: you were not removing the ones with count==1 earlier 
-                            thit->pos_in_y = current_len;
-                            thit->hit_count++;
+                        if(thit->repetition == FALSE){
+
+				
+                        	hash_forward = collisioned_hash(&curr_kmer[0], custom_kmer);
+
+				if( hash_forward == thit->key){
+                	            // Attention ::::: you were not removing the ones with count==1 earlier 
+        	                    thit->pos_in_y = current_len;
+	                            thit->hit_count++;
+				}
                         }
 
                         thit = &ctidx->table[char_converter[reverse_kmer[0]]][char_converter[reverse_kmer[1]]][char_converter[reverse_kmer[2]]]
@@ -354,10 +361,16 @@ int main(int argc, char ** av){
                         [char_converter[reverse_kmer[6]]][char_converter[reverse_kmer[7]]][char_converter[reverse_kmer[8]]]
                         [char_converter[reverse_kmer[9]]][char_converter[reverse_kmer[10]]][char_converter[reverse_kmer[11]]];
 
-                        if(thit->repetition == FALSE && hash_reverse == thit->key){
-                            // Attention ::::: you were not removing the ones with count==1 earlier 
-                            thit->pos_in_y = current_len;
-                            thit->hit_count++;
+                        if(thit->repetition == FALSE){ 
+
+
+                        	hash_reverse = collisioned_hash(&reverse_kmer[0], custom_kmer);
+
+				if(hash_reverse == thit->key){
+        	                    // Attention ::::: you were not removing the ones with count==1 earlier 
+	                            thit->pos_in_y = current_len;
+	                            thit->hit_count++;
+				}
                         }
 
                         /*
