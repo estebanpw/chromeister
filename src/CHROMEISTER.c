@@ -32,7 +32,8 @@ uint64_t get_seq_len(FILE * f);
 void init_args(int argc, char ** av, FILE ** query, FILE ** database, FILE ** out_database, uint64_t * custom_kmer, uint64_t * dimension, uint64_t * diffuse_z);
 
 int main(int argc, char ** av){
-    
+
+
 
     /*
     //Store positions of kmers
@@ -193,11 +194,12 @@ int main(int argc, char ** av){
                     } Tuple_hits;
                     */
 
-                    if(thit->repetition == FALSE){
+                    if(thit->repetition == UNSET){
                         // Then we can insert
                         thit->hit_count = 0;
                         thit->key = collisioned_hash(&curr_kmer[0], custom_kmer);
                         thit->pos = current_len;
+                        thit->repetition = FALSE;
                     }else{
                         // Otherwise we break it
                         thit->repetition = TRUE;
@@ -283,7 +285,8 @@ int main(int argc, char ** av){
 
     //To force reading from the buffer
     idx = READBUF + 1;
-    c = buffered_fgetc(temp_seq_buffer, &idx, &r, query);    
+    c = buffered_fgetc(temp_seq_buffer, &idx, &r, query);
+
     //uint64_t c_hash_holder = 0;
     
     while((!feof(query) || (feof(query) && idx < r))){
@@ -346,14 +349,13 @@ int main(int argc, char ** av){
 
                         if(thit->repetition == FALSE){
 
-				
                         	hash_forward = collisioned_hash(&curr_kmer[0], custom_kmer);
 
-				if( hash_forward == thit->key){
-                	            // Attention ::::: you were not removing the ones with count==1 earlier 
-        	                    thit->pos_in_y = current_len;
-	                            thit->hit_count++;
-				}
+				            if( hash_forward == thit->key){
+                                // Attention ::::: you were not removing the ones with count==1 earlier 
+                                thit->pos_in_y = current_len;
+                                thit->hit_count++;
+				            }
                         }
 
                         thit = &ctidx->table[char_converter[reverse_kmer[0]]][char_converter[reverse_kmer[1]]][char_converter[reverse_kmer[2]]]
@@ -366,11 +368,11 @@ int main(int argc, char ** av){
 
                         	hash_reverse = collisioned_hash(&reverse_kmer[0], custom_kmer);
 
-				if(hash_reverse == thit->key){
+                            if(hash_reverse == thit->key){
         	                    // Attention ::::: you were not removing the ones with count==1 earlier 
 	                            thit->pos_in_y = current_len;
 	                            thit->hit_count++;
-				}
+				            }
                         }
 
                         /*
@@ -433,6 +435,7 @@ int main(int argc, char ** av){
         }
         
     } 
+
 
     /// Out
 

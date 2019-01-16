@@ -127,6 +127,13 @@ uint64_t hashOfWord(const unsigned char * word, uint32_t k, uint64_t offset){
     return value;
 }
 
+uint64_t fast_hash_from_previous(const unsigned char * word, uint32_t k, unsigned char next_nucl, uint64_t previous_hash){
+    if((char) next_nucl == 'A') return 4 * (previous_hash - quick_pow4byLetter(k-1, (char) next_nucl));
+    if((char) next_nucl == 'C') return 4 * (previous_hash - quick_pow4byLetter(k-1, (char) next_nucl)) + 1;
+    if((char) next_nucl == 'G') return 4 * (previous_hash - quick_pow4byLetter(k-1, (char) next_nucl)) + 2;
+    return 4 * (previous_hash - quick_pow4byLetter(k-1, (char) next_nucl)) + 3;
+}
+
 void perfect_hash_to_word(unsigned char * word, uint64_t hash, uint32_t k){
     uint64_t jIdx = (uint64_t) (k-1), upIdx = 0;
     uint64_t v;

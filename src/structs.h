@@ -23,8 +23,9 @@
 
 #define BYTES_IN_MER 4
 #define MAX_DECOMP_HASH 10
-#define FALSE 0
-#define TRUE 1
+#define UNSET 0
+#define FALSE 1
+#define TRUE 2
 
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 #define MIN(x, y) (((x) <= (y)) ? (x) : (y))
