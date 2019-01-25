@@ -22,7 +22,11 @@ You can run CHROMEISTER directly by issuing:
 
 CHROMEISTER -query seqX -db seqY -out dotplot.mat && Rscript compute_score.R dotplot.mat
 
-or you can also use the script that is in the bin folder:
+or you can also use the script that is in the bin folder (which will do the above for you):
+
+run_and_plot_chromeister.sh <sequence A> <sequence B> <KMER> <DIMENSION> <DIFF>
+
+(see parameters at the end)
 
 This will generate the following items:
 
