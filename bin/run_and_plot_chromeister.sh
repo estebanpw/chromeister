@@ -8,8 +8,6 @@ DIFF=$5
 FILE1=$(basename $G1)
 FILE2=$(basename $G2)
 
-BINDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-
 
 if [ $# -lt 5 ]; then
         echo "***ERROR*** Use: $0 <G1> <G2> <KMER> <DIMENSION> <DIFF>"
@@ -17,6 +15,10 @@ if [ $# -lt 5 ]; then
 fi
 
 
+FILE1=$(basename $G1)
+FILE2=$(basename $G2)
+
+BINDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 (time $BINDIR/CHROMEISTER -query $G1 -db $G2 -kmer $KMER -out $FILE1-$FILE2.mat -dimension $DIM -diffuse $DIFF) &> $FILE1-$FILE2.log
 (Rscript $BINDIR/compute_score.R $FILE1-$FILE2.mat $DIM) &> $FILE1-$FILE2.scr.txt
