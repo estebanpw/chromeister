@@ -5,10 +5,6 @@ KMER=$3
 DIM=$4
 DIFF=$5
 
-FILE1=$(basename $G1)
-FILE2=$(basename $G2)
-
-
 if [ $# -lt 5 ]; then
         echo "***ERROR*** Use: $0 <G1> <G2> <KMER> <DIMENSION> <DIFF>"
         exit -1
