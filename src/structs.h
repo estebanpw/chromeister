@@ -11,6 +11,7 @@
 #define POINT 4
 
 #define FIXED_K 12
+#define TOTAL_ENTRIES 16777216
 
 #define MAXLID 200
 #define ALIGN_LEN 60 //For NW alignment
@@ -20,17 +21,54 @@
 #define POOL_SIZE 12500000 // 1 GB if 16 bytes
 #define MAX_MEM_POOLS 256 
 
-#define FALSE 0
-#define TRUE 1
+#define BYTES_IN_MER 4
+#define MAX_DECOMP_HASH 10
+#define UNSET 0
+#define FALSE 1
+#define TRUE 2
+
+#define MAX(x, y) (((x) > (y)) ? (x) : (y))
+#define MIN(x, y) (((x) <= (y)) ? (x) : (y))
 
 extern uint64_t custom_kmer;
+extern uint64_t diffuse_z;
 
 //Struct for linked list of positions
 typedef struct linked_list_pos{
     uint64_t pos;
-    uint64_t extended_hash;
+    //uint64_t extended_hash;
+    //unsigned char decomp_hash[MAX_DECOMP_HASH]; // Fits up to MAX_DECOMP_HASH*4 letters = 256 length kmer
+    //uint64_t hits_count;
     struct linked_list_pos * next;
 } llpos;
+
+
+// An AVL tree node
+typedef struct AVL_Node{
+    uint64_t key;
+    struct AVL_Node * left;
+    struct AVL_Node * right;
+    uint64_t height;
+    uint64_t count;
+    llpos * next;
+} AVLTree;
+
+
+// Tuple of data 
+typedef struct tuple_hits{
+    int repetition;
+    int hit_count;
+    uint64_t key;
+    uint64_t pos;
+    uint64_t pos_in_y;
+} Tuple_hits;
+
+typedef struct hash_holder{
+    uint64_t key;
+    uint64_t pos;
+} Hash_holder;
+
+
 
 //Struct for memory pool por lists
 typedef struct mempool_l{
@@ -38,6 +76,11 @@ typedef struct mempool_l{
     uint64_t current;
 } Mempool_l;
 
+//Struct for memory pool por AVLtree
+typedef struct mempool_AVL{
+    AVLTree * base;
+    uint64_t current;
+} Mempool_AVL;
 
 //Struct for a whole sequence(s) data
 typedef struct seqinfo{
