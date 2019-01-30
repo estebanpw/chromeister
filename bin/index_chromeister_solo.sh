@@ -58,6 +58,14 @@ do
 	counter=0
 	numX=${getnum[2]}
 	numY=${getnum[5]}
+	
+	re='^[0-9]+$'
+	if ! [[ $numX =~ $re ]] ; then
+		numX=NULL
+	fi
+	if ! [[ $numY =~ $re ]] ; then
+		numY=NULL
+	fi
 
 
 
