@@ -50,7 +50,8 @@ typedef struct AVL_Node{
     struct AVL_Node * right;
     uint64_t height;
     uint64_t count;
-    llpos * next;
+    llpos * next_in_x;
+    llpos * next_in_y;
 } AVLTree;
 
 

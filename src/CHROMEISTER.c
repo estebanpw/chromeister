@@ -35,7 +35,7 @@ int main(int argc, char ** av){
 
 
 
-    /*
+    
     //Store positions of kmers
     uint64_t n_pools_used = 0;
     //Mempool_l * mp = (Mempool_l *) malloc(MAX_MEM_POOLS*sizeof(Mempool_l));
@@ -47,9 +47,11 @@ int main(int argc, char ** av){
     uint64_t n_pools_used_AVL = 0;
     Mempool_AVL mp_AVL[MAX_MEM_POOLS];
     init_mem_pool_AVL(&mp_AVL[n_pools_used_AVL]);
-    */
-    Tuple_hits * thit;
     
+    //Tuple_hits * thit;
+    
+    AVLTree * root = NULL;
+
     /*
     AVLTree * root = NULL;
     root = insert_AVLTree(root, 10, mp_AVL, &n_pools_used_AVL, 0, mp, &n_pools_used);
@@ -100,12 +102,7 @@ int main(int argc, char ** av){
         if(representation[i] == NULL) terror("Could not allocate second loop representation");
     }
 
-    /*
-    fseek(database, 0, SEEK_END);
-    uint64_t aprox_len_query = ftell(database);
-    uint64_t aprox_len_db = aprox_len_query;
-    rewind(database);
-    */
+    
     uint64_t aprox_len_query = get_seq_len(database);
     uint64_t aprox_len_db = aprox_len_query;
 
@@ -127,18 +124,11 @@ int main(int argc, char ** av){
     unsigned char * seq_vector_query = (unsigned char *) malloc(READBUF*sizeof(unsigned char));
     if(seq_vector_query == NULL) terror("Could not allocate memory for query vector");
 
-    /*
-    Container * ct = (Container *) calloc(1, sizeof(Container));
-    if(ct == NULL) terror("Could not allocate container");    
-    */
-
+    
 
 
     Index * ctidx = (Index *) calloc(1, sizeof(Index));
     if(ctidx == NULL) terror("Could not allocate container");
-    
-
-    //begin = clock();
     
 
     c = buffered_fgetc(temp_seq_buffer, &idx, &r, database);
@@ -160,7 +150,6 @@ int main(int argc, char ** av){
                     ++current_len;
                     if(current_len % a_hundreth == 0){ 
                         fprintf(stdout, "\r%"PRIu64"%%...", 1+100*current_len/aprox_len_query); 
-                        //printf("%"PRIu64"%%..wasted: (%e) (%e)", 1+100*pos_in_query/aprox_len_query, (double)(wasted_cycles_forward)/CLOCKS_PER_SEC, (double)(wasted_cycles_reverse)/CLOCKS_PER_SEC); 
                         fflush(stdout);
                     }
                     
@@ -170,29 +159,20 @@ int main(int argc, char ** av){
 
                     if(c != '\n' && c != '>'){
                         word_size = 0;
-                        // data_database.sequences[pos_in_database++] = (unsigned char) 'N'; //Convert to N
                         ++current_len;
 
                     } 
                 }
-                //if(current_len % 1000000 == 0) printf(" curr len %" PRIu64"\n", current_len);
                 if(word_size == custom_kmer){
                     //write to hash table
                     
-
+                    /*
                     thit = &ctidx->table[char_converter[curr_kmer[0]]][char_converter[curr_kmer[1]]][char_converter[curr_kmer[2]]]
                     [char_converter[curr_kmer[3]]][char_converter[curr_kmer[4]]][char_converter[curr_kmer[5]]]
                     [char_converter[curr_kmer[6]]][char_converter[curr_kmer[7]]][char_converter[curr_kmer[8]]]
                     [char_converter[curr_kmer[9]]][char_converter[curr_kmer[10]]][char_converter[curr_kmer[11]]];
                     
-                    /*
-                    typedef struct tuple_hits{
-                        int repetition;
-                        int hit_count;
-                        uint64_t key;
-                        uint64_t pos;
-                    } Tuple_hits;
-                    */
+                    
 
                     if(thit->repetition == UNSET){
                         // Then we can insert
@@ -205,18 +185,20 @@ int main(int argc, char ** av){
                         thit->repetition = TRUE;
                     }
 
-                    //thit->root = insert_AVLTree(thit->root, hashOfWord(&curr_kmer[0], custom_kmer, FIXED_K), mp_AVL, &n_pools_used_AVL, current_len, mp, &n_pools_used);
-                    //thit->root = insert_AVLTree(thit->root, collisioned_hash(&curr_kmer[0], custom_kmer), mp_AVL, &n_pools_used_AVL, current_len, mp, &n_pools_used);
+                    */
+
+                    root = insert_AVLTree_x(root, hashOfWord(&curr_kmer[0], custom_kmer, 0), mp_AVL, &n_pools_used_AVL, current_len, mp, &n_pools_used);
+                    //root = insert_AVLTree(root, collisioned_hash(&curr_kmer[0], custom_kmer), mp_AVL, &n_pools_used_AVL, current_len, mp, &n_pools_used);
                     
                     
 
                     // Non overlapping
-                    word_size = 0;
+                    //word_size = 0;
                     
 		
-		    // Overlapping
-                    //memmove(&curr_kmer[0], &curr_kmer[1], custom_kmer-1);
-                    //--word_size;
+		            // Overlapping
+                    memmove(&curr_kmer[0], &curr_kmer[1], custom_kmer-1);
+                    --word_size;
                 }
             }
             word_size = 0;
@@ -227,12 +209,6 @@ int main(int argc, char ** av){
         
     }
 
-
-    //end = clock();
-
-    // data_database.total_len = pos_in_database;
-
-    //fprintf(stdout, "[INFO] Database loaded and of length %"PRIu64". Hash table building took %e seconds\n", data_database.total_len, (double)(end-begin)/CLOCKS_PER_SEC);
     fprintf(stdout, "[INFO] Database loaded and of length %"PRIu64".\n", current_len);
     //close database
     fclose(database);
@@ -245,15 +221,8 @@ int main(int argc, char ** av){
     
     
     
-    double pixel_size_db = (double) dimension / (double) current_len;
-    double ratio_db = (double) current_len / dimension;
-
-
     // Get file length
     
-    //fseek(query, 0, SEEK_END);
-    //aprox_len_query = ftell(query);
-    //rewind(query);
     aprox_len_query = get_seq_len(query);
 
     //uint64_t reallocs_hash_holder_table = 1;
@@ -263,17 +232,6 @@ int main(int argc, char ** av){
     //if(hash_holder_table == NULL) terror("Could not allocate hash holding table");
 
     a_hundreth = (aprox_len_query/100);
-    double pixel_size_query = (double) dimension / (double) aprox_len_query;
-    double ratio_query = (double) aprox_len_query / dimension;
-    
-
-    double i_r_fix = MAX(1.0, custom_kmer * pixel_size_query);
-    double j_r_fix = MAX(1.0, custom_kmer * pixel_size_db);
-
-    
-    
-    fprintf(stdout, "[INFO] Ratios: Q [%e] D [%e]. Lenghts: Q [%"PRIu64"] D [%"PRIu64"]\n", ratio_query, ratio_db, aprox_len_query, current_len);
-    fprintf(stdout, "[INFO] Pixel size: Q [%e] D [%e].\n", pixel_size_query, pixel_size_db);
 
 
     fprintf(stdout, "[INFO] Computing absolute hit numbers.\n");
@@ -338,79 +296,16 @@ int main(int argc, char ** av){
                         //hash_forward = collisioned_hash(&curr_kmer[0], custom_kmer);
                         //hash_reverse = collisioned_hash(&reverse_kmer[0], custom_kmer);
                         
-			
+                        /*
                         thit = &ctidx->table[char_converter[curr_kmer[0]]][char_converter[curr_kmer[1]]][char_converter[curr_kmer[2]]]
                         [char_converter[curr_kmer[3]]][char_converter[curr_kmer[4]]][char_converter[curr_kmer[5]]]
                         [char_converter[curr_kmer[6]]][char_converter[curr_kmer[7]]][char_converter[curr_kmer[8]]]
                         [char_converter[curr_kmer[9]]][char_converter[curr_kmer[10]]][char_converter[curr_kmer[11]]];
-			
 
-                        //AVLTree * search = find_AVLTree(thit->root, hash_forward);
-
-                        if(thit->repetition == FALSE){
-
-                        	hash_forward = collisioned_hash(&curr_kmer[0], custom_kmer);
-
-				            if( hash_forward == thit->key){
-                                // Attention ::::: you were not removing the ones with count==1 earlier 
-                                thit->pos_in_y = current_len;
-                                thit->hit_count++;
-				            }
-                        }
-
-                        thit = &ctidx->table[char_converter[reverse_kmer[0]]][char_converter[reverse_kmer[1]]][char_converter[reverse_kmer[2]]]
-                        [char_converter[reverse_kmer[3]]][char_converter[reverse_kmer[4]]][char_converter[reverse_kmer[5]]]
-                        [char_converter[reverse_kmer[6]]][char_converter[reverse_kmer[7]]][char_converter[reverse_kmer[8]]]
-                        [char_converter[reverse_kmer[9]]][char_converter[reverse_kmer[10]]][char_converter[reverse_kmer[11]]];
-
-                        if(thit->repetition == FALSE){ 
-
-
-                        	hash_reverse = collisioned_hash(&reverse_kmer[0], custom_kmer);
-
-                            if(hash_reverse == thit->key){
-        	                    // Attention ::::: you were not removing the ones with count==1 earlier 
-	                            thit->pos_in_y = current_len;
-	                            thit->hit_count++;
-				            }
-                        }
-
-                        /*
-                        if(search != NULL && search->count == 1){ //If count is two, then it is a rep
-                            thit->hit_count += search->count;
-                            
-                            hash_holder_table[c_hash_holder].pos = current_len;
-                            hash_holder_table[c_hash_holder].node = search;
-                            hash_holder_table[c_hash_holder].th = thit;
-                            ++c_hash_holder;
-                            if(c_hash_holder == n_items_hash_holder_table*reallocs_hash_holder_table){
-                                ++reallocs_hash_holder_table;
-                                hash_holder_table = (Hash_holder *) realloc(hash_holder_table, n_items_hash_holder_table*reallocs_hash_holder_table*sizeof(Hash_holder));
-                                if(hash_holder_table == NULL) terror("Could not realloc hash holder table");
-                            }
-                        }
                         */
 
-                        
-
-                        
-
-                        //search = find_AVLTree(thit->root, hash_reverse);
-                        /*
-                        if(search != NULL && search->count == 1){ //If count is two, then it is a rep
-                            
-                            thit->hit_count += search->count;
-                            hash_holder_table[c_hash_holder].pos = current_len;
-                            hash_holder_table[c_hash_holder].node = search;
-                            hash_holder_table[c_hash_holder].th = thit;
-                            ++c_hash_holder;
-                            if(c_hash_holder == n_items_hash_holder_table*reallocs_hash_holder_table){
-                                ++reallocs_hash_holder_table;
-                                hash_holder_table = (Hash_holder *) realloc(hash_holder_table, n_items_hash_holder_table*reallocs_hash_holder_table*sizeof(Hash_holder));
-                                if(hash_holder_table == NULL) terror("Could not realloc hash holder table");
-                            }
-                        }
-                        */
+                        root = insert_AVLTree_y(root, hashOfWord(&curr_kmer[0], custom_kmer, 0), mp_AVL, &n_pools_used_AVL, current_len, mp, &n_pools_used);
+                        root = insert_AVLTree_y(root, hashOfWord(&reverse_kmer[0], custom_kmer, 0), mp_AVL, &n_pools_used_AVL, current_len, mp, &n_pools_used);
 
                         // Overlapping
                         
@@ -434,162 +329,13 @@ int main(int argc, char ** av){
             c = buffered_fgetc(temp_seq_buffer, &idx, &r, query);    
         }
         
-    } 
-
-
-    /// Out
-
-    fprintf(stdout, "Scanning hits table.\n");
-
-    a_hundreth = MAX(1, TOTAL_ENTRIES/100);
-    uint64_t t_computed = 0;
-    uint64_t w0,w1,w2,w3,w4,w5,w6,w7,w8,w9,w10,w11;
-    for(w0=0;w0<4;w0++){
-        for(w1=0;w1<4;w1++){
-            for(w2=0;w2<4;w2++){
-                for(w3=0;w3<4;w3++){
-                    for(w4=0;w4<4;w4++){
-                        for(w5=0;w5<4;w5++){
-                            for(w6=0;w6<4;w6++){
-                                for(w7=0;w7<4;w7++){
-                                    for(w8=0;w8<4;w8++){
-                                        for(w9=0;w9<4;w9++){
-                                            for(w10=0;w10<4;w10++){
-                                                for(w11=0;w11<4;w11++){
-
-                                                    if(t_computed % a_hundreth == 0){ 
-                                                        fprintf(stdout, "\r%"PRIu64"%%...", 1+100*t_computed/TOTAL_ENTRIES); 
-                                                        fflush(stdout);
-                                                    }
-                                                    ++t_computed;
-                                                    Tuple_hits * taux = &ctidx->table[w0][w1][w2][w3][w4][w5][w6][w7][w8][w9][w10][w11];
-                                                    if(taux->hit_count == 1){
-                                                        // We plot it   
-                                                        // Convert scale to representation
-                                                        uint64_t redir_db = (uint64_t) (taux->pos / (ratio_db));
-                                                        uint64_t redir_query = (uint64_t) (taux->pos_in_y / (ratio_query));
-                                                        double i_r = i_r_fix; double j_r = j_r_fix;
-                                                        while((uint64_t) i_r >= 1 && (uint64_t) j_r >= 1){
-                                                            if((int64_t) redir_query - (int64_t) i_r > 0 && (int64_t) redir_db - (int64_t) j_r > 0){
-                                                                representation[(int64_t) redir_query - (int64_t) i_r][(int64_t) redir_db - (int64_t) j_r]++;
-                                                            }else{
-                                                                representation[redir_query][redir_db]++;
-                                                                break;
-                                                            }
-                                                            i_r -= MIN(1.0, pixel_size_query);
-                                                            j_r -= MIN(1.0, pixel_size_db);
-                                                        }                                                     
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-    
-
-    //double average_hit = ((double) total_hits / (double) table_size);
-    //average_hit = 2.2;
-
-    /*
-    //fprintf(stdout, "[INFO] Total hit count is %"PRIu64" on a size of %"PRIu64" Avg = %e.\n", total_hits, table_size, average_hit);
-    fprintf(stdout, "[INFO] Total hit count is %"PRIu64" on a size of %"PRIu64" E' = %e.\n", total_hits, table_size, Eprime);
-
-    
-
-    
-
-    a_hundreth = MAX(1,c_hash_holder/100);
-    
-    for(current_len = 0; current_len < c_hash_holder; current_len++){
-
-        if(current_len % a_hundreth == 0){ 
-            fprintf(stdout, "\r%"PRIu64"%%...", 1+100*current_len/c_hash_holder); 
-            fflush(stdout);
-        }
-
-        aux = hash_holder_table[current_len].node->next;
-
-        //if(hash_holder_table[current_len].th->hit_count < (uint64_t) average_hit){
-        if(hash_holder_table[current_len].th->hit_count < (uint64_t) Eprime){
-            while(aux != NULL){
-                // Convert scale to representation
-                uint64_t redir_db = (uint64_t) (aux->pos / (ratio_db));
-                uint64_t redir_query = (uint64_t) (hash_holder_table[current_len].pos / (ratio_query));
-                double i_r = i_r_fix; double j_r = j_r_fix;
-                while((uint64_t) i_r >= 1 && (uint64_t) j_r >= 1){
-                    if((int64_t) redir_query - (int64_t) i_r > 0 && (int64_t) redir_db - (int64_t) j_r > 0){
-                        representation[(int64_t) redir_query - (int64_t) i_r][(int64_t) redir_db - (int64_t) j_r]++;
-                    }else{
-                        representation[redir_query][redir_db]++;
-                        break;
-                    }
-                    i_r -= MIN(1.0, pixel_size_query);
-                    j_r -= MIN(1.0, pixel_size_db);
-                }
-                aux = aux->next;
-            }
-        }
-    }
-    */
-
-
-    //end = clock();
-
-    
-    
-
-    //fprintf(stdout, "\n[INFO] Query length %"PRIu64". Hits completed. Took %e seconds\n", data_query.total_len, (double)(end-begin)/CLOCKS_PER_SEC);
-    fprintf(stdout, "\n[INFO] Query length %"PRIu64".\n", current_len);
-
-    //begin = clock();
-
-    //reads_per_thread = (uint64_t) (floorl((long double) data_query.n_seqs / (long double) n_threads));
-    
-    fprintf(stdout, "[INFO] Writing matrix.\n");
-
-
-    uint64_t unique_diffuse = 0;
-	fprintf(out_database, "%"PRIu64"\n", aprox_len_query);
-    fprintf(out_database, "%"PRIu64"\n", aprox_len_db);
-     // And replace 2's with 1's 
-	
-    for(i=0; i<dimension+1; i++){
-        for(j=0; j<dimension; j++){
-            fprintf(out_database, "%"PRIu64" ", representation[i][j]);
-	    unique_diffuse += representation[i][j];
-        }
-        fprintf(out_database, "%"PRIu64"\n",  representation[i][dimension]);
-	unique_diffuse += representation[i][dimension];
     }
 
-    fprintf(stdout, "[INFO] Found %"PRIu64" unique hits for z = %"PRIu64".\n", unique_diffuse, diffuse_z);
-    
 
-    
-    //free(ct->table);
-    //free(hash_holder_table);
-    /*
-    for(i=0;i<=n_pools_used_AVL;i++){
-        free(mp_AVL[i].base);
-    }
 
-    for(i=0;i<=n_pools_used;i++){
-        free(mp[i].base);
-    }
-    */
-    for(i=0;i<dimension;i++){
-        free(representation[i]);
-    }
-    free(representation);
-    if(out_database != NULL) fclose(out_database);
-    
+
+
+
     return 0;
 }
 

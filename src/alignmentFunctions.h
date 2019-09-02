@@ -40,9 +40,13 @@ AVLTree * left_rotate(AVLTree * x);
 
 AVLTree * find_AVLTree(AVLTree * node, uint64_t key);
 
-llpos * find_AVLTree_llpos(AVLTree * node, uint64_t key);
+llpos * find_AVLTree_llpos_x(AVLTree * node, uint64_t key);
 
-AVLTree * insert_AVLTree(AVLTree * node, uint64_t key, Mempool_AVL * mp, uint64_t * n_pools_used, uint64_t pos, Mempool_l * mp_l, uint64_t * n_pools_used_l);
+llpos * find_AVLTree_llpos_y(AVLTree * node, uint64_t key);
+
+AVLTree * insert_AVLTree_x(AVLTree * node, uint64_t key, Mempool_AVL * mp, uint64_t * n_pools_used, uint64_t pos, Mempool_l * mp_l, uint64_t * n_pools_used_l);
+
+AVLTree * insert_AVLTree_y(AVLTree * node, uint64_t key, Mempool_AVL * mp, uint64_t * n_pools_used, uint64_t pos, Mempool_l * mp_l, uint64_t * n_pools_used_l);
 
 void pre_order(AVLTree * root);
 

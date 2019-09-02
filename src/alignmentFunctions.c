@@ -156,46 +156,125 @@ AVLTree * find_AVLTree(AVLTree * node, uint64_t key){
     return found;
 } 
 
-llpos * find_AVLTree_llpos(AVLTree * node, uint64_t key){
+llpos * find_AVLTree_llpos_x(AVLTree * node, uint64_t key){
     llpos * aux = NULL;
     if(node == NULL) return NULL;
 
     if (key < node->key) {
-        aux = find_AVLTree_llpos(node->left, key);
+        aux = find_AVLTree_llpos_x(node->left, key);
     } else if (key > node->key) {
-        aux = find_AVLTree_llpos(node->right, key);
+        aux = find_AVLTree_llpos_x(node->right, key);
     } else { 
-        return node->next;
+        return node->next_in_x;
+    }
+    return aux;
+}
+
+llpos * find_AVLTree_llpos_y(AVLTree * node, uint64_t key){
+    llpos * aux = NULL;
+    if(node == NULL) return NULL;
+
+    if (key < node->key) {
+        aux = find_AVLTree_llpos_y(node->left, key);
+    } else if (key > node->key) {
+        aux = find_AVLTree_llpos_y(node->right, key);
+    } else { 
+        return node->next_in_y;
     }
     return aux;
 }
 
 // Recursive function to insert key in subtree rooted
 // with node and returns new root of subtree.
-AVLTree * insert_AVLTree(AVLTree * node, uint64_t key, Mempool_AVL * mp, uint64_t * n_pools_used, uint64_t pos, Mempool_l * mp_l, uint64_t * n_pools_used_l){
+AVLTree * insert_AVLTree_x(AVLTree * node, uint64_t key, Mempool_AVL * mp, uint64_t * n_pools_used, uint64_t pos, Mempool_l * mp_l, uint64_t * n_pools_used_l){
     /* 1.  Perform the normal BST insertion */
     if (node == NULL){
         
         AVLTree * n_node = getNewLocationAVLTree(mp, n_pools_used, key);
         llpos * aux = getNewLocationllpos(mp_l, n_pools_used_l);
         aux->pos = pos;
-        n_node->next = aux;
+        n_node->next_in_x = aux;
         return n_node;
     }
  
     if (key < node->key) {
-        node->left  = insert_AVLTree(node->left, key, mp, n_pools_used, pos, mp_l, n_pools_used_l);
+        node->left  = insert_AVLTree_x(node->left, key, mp, n_pools_used, pos, mp_l, n_pools_used_l);
     } else if (key > node->key) {
-        node->right = insert_AVLTree(node->right, key, mp, n_pools_used, pos, mp_l, n_pools_used_l);
+        node->right = insert_AVLTree_x(node->right, key, mp, n_pools_used, pos, mp_l, n_pools_used_l);
+    } else { 
+        
+        // Equal keys are inserted as a linked list
+        llpos * aux = getNewLocationllpos(mp_l, n_pools_used_l);
+        aux->pos = pos;
+        aux->next = node->next_in_x;
+        node->next_in_x = aux;
+        ++(node->count);
+        
+        return node;
+    }
+ 
+    /* 2. Update height of this ancestor node */
+    //node->height = 1 + MAX((node->left == NULL) ? (0) : (node->left->height), (node->right == NULL) ? (0) : (node->right->height));
+    node->height = 1 + MAX(height(node->left), height(node->right));
+ 
+    /* 3. Get the balance factor of this ancestor
+          node to check whether this node became
+          unbalanced */
+    //int64_t balance = (node->left == NULL || node->right == NULL) ? (0) : ((int64_t) node->left->height - (int64_t) node->right->height);
+    int64_t balance = get_balance(node);
+ 
+    // If this node becomes unbalanced, then
+    // there are 4 cases
+ 
+    // Left Left Case
+    if (balance > 1 && key < node->left->key)
+        return right_rotate(node);
+ 
+    // Right Right Case
+    if (balance < -1 && key > node->right->key)
+        return left_rotate(node);
+ 
+    // Left Right Case
+    if (balance > 1 && key > node->left->key)
+    {
+        node->left =  left_rotate(node->left);
+        return right_rotate(node);
+    }
+ 
+    // Right Left Case
+    if (balance < -1 && key < node->right->key)
+    {
+        node->right = right_rotate(node->right);
+        return left_rotate(node);
+    }
+ 
+    /* return the (unchanged) node pointer */
+    return node;
+}
+
+
+AVLTree * insert_AVLTree_y(AVLTree * node, uint64_t key, Mempool_AVL * mp, uint64_t * n_pools_used, uint64_t pos, Mempool_l * mp_l, uint64_t * n_pools_used_l){
+    /* 1.  Perform the normal BST insertion */
+    if (node == NULL){
+        
+        AVLTree * n_node = getNewLocationAVLTree(mp, n_pools_used, key);
+        llpos * aux = getNewLocationllpos(mp_l, n_pools_used_l);
+        aux->pos = pos;
+        n_node->next_in_y = aux;
+        return n_node;
+    }
+ 
+    if (key < node->key) {
+        node->left  = insert_AVLTree_y(node->left, key, mp, n_pools_used, pos, mp_l, n_pools_used_l);
+    } else if (key > node->key) {
+        node->right = insert_AVLTree_y(node->right, key, mp, n_pools_used, pos, mp_l, n_pools_used_l);
     } else { 
         // Equal keys are inserted as a linked list
-        if(node->count == 1){ // DO NOT INSERT MORE THAN 2. 1 is good 2 is repetition
-            llpos * aux = getNewLocationllpos(mp_l, n_pools_used_l);
-            aux->pos = pos;
-            aux->next = node->next;
-            node->next = aux;
-            ++(node->count);
-        }
+        llpos * aux = getNewLocationllpos(mp_l, n_pools_used_l);
+        aux->pos = pos;
+        aux->next = node->next_in_y;
+        node->next_in_y = aux;
+        ++(node->count);
         
         return node;
     }
@@ -246,7 +325,9 @@ AVLTree * insert_AVLTree(AVLTree * node, uint64_t key, Mempool_AVL * mp, uint64_
 void pre_order(AVLTree * root){
     if(root != NULL){
         printf("%"PRIu64" ", root->key);
-        llpos * aux = root->next;
+        llpos * aux = root->next_in_x;
+        while(aux != NULL){ printf("#%"PRIu64", ", aux->pos); aux = aux->next; }
+        aux = root->next_in_y;
         while(aux != NULL){ printf("#%"PRIu64", ", aux->pos); aux = aux->next; }
         pre_order(root->left);
         pre_order(root->right);
