@@ -60,6 +60,39 @@ hr.C1.fasta-BRAOL.Chr.C2.fasta.mat.filt.png,C1,C2, 0.996,43764888,52886895
 Notice that you can easily run this in parallel by just re-issuing the command (i.e. execute same command as many times as you want, each time another core will help in the processing).
 
 
+## Converting CHROMEISTER signal into alignments
+
+First of all, consider whether it is interesting or not to use CHROMEISTER for "fine-grained" results. CHROMEISTER is recommended for VERY coarse-grained and full-genome comparisons in order to quickly assess similarity between genomes. Thus it does NOT produce alignments. However, if you find yourself in a situation where you want to convert the signal of CHROMEISTER into alignments (e.g. two large genomes), this can be done. The following tutorial shows how to do it, with human chromosome X and mouse chromosome X as example:
+
+1. First, run CHROMEISTER like this:
+
+	./CHROMEISTER -query HOMSA.Chr.X.fasta -db MUSMU.Chr.X.fasta -out dotplot.mat -dimension 1000 && Rscript compute_score.R dotplot.mat 1000
+
+2. Check the "dotplot.mat.filt.png" corresponding to the dotplot between both chromosomes to see if there is any similarity. If so, proceed to next step.
+
+3. Clone the following repository: https://github.com/estebanpw/gecko
+
+	git clone https://github.com/estebanpw/gecko
+
+4. Switch branch to the one named "inmemory_guided_chrom" and compile it. To do so, issue the following commands:
+	cd gecko
+	git checkout inmemory_guided_chrom
+	make all -C src
+
+5. Now run the script "guidefastas" in the bin folder. See below:
+
+	bin/guidefastas.sh HOMSA.Chr.X.fasta MUSMU.Chr.X.fasta hits-XY-dotplot.mat.hits 1000 100 60 32
+
+Note (1): remember to include the full path to the sequences.
+Note (2): the "hits-XY-dotplot.mat.hits" file is produced by CHROMEISTER in step 1. Copy it to the folder or include full path.
+Note (3): the parameters following in the command "1000 200 75 32" are namely (1) size of dotplot, (2) minimum length that an alignment must have to be reported, (3) minimum similarity from 0-100, (4) k-mer seed size (use 32 for chromomsome-like sequences).
+
+This step can take several minutes, e.g. using 1 CPU this execution took around 9-10 minutes.
+
+6. A CSV file containing the alignments coordinates can be found in the folder all-results/master.csv. You can download it here if you wish to do so: http://mango.ac.uma.es/compartir/HOMSA_X-MUSMU_X.csv
+
+7. If you also wish to visually contrast annotations to the alignments, you can use our genomic browser at https://pistacho.ac.uma.es/. To do so just follow the user guide available at https://pistacho.ac.uma.es/static/data/GeckoMGV-UserGuide.pdf
+
 
 ## Parameters
 
