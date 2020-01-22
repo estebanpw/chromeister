@@ -20,7 +20,11 @@ To do so, use the binaries at the bin folder:
 
 You can run CHROMEISTER directly by issuing:
 
-CHROMEISTER -query seqX -db seqY -out dotplot.mat && Rscript compute_score.R dotplot.mat
+CHROMEISTER -query seqX -db seqY -out dotplot.mat && Rscript compute_score.R dotplot.mat 1000
+
+The 1000 value is the default size of dotplot.mat, i.e. the resolution of the matrix -- if you want to change this (for example to generate a larger image (if you use 2000 it will generate a plot of 2000x2000, so be careful) include also the parameter -dimension in CHROMEISTER. Example command with larger resolution:
+
+CHROMEISTER -query seqX -db seqY -out dotplot.mat -dimension 2000 && Rscript compute_score.R dotplot.mat 2000
 
 or you can also use the script that is in the bin folder (which will do the above for you):
 
