@@ -74,10 +74,10 @@ First of all, consider whether it is interesting or not to use CHROMEISTER for "
 
 	git clone https://github.com/estebanpw/gecko
 
-4. Switch branch to the one named "inmemory_guided_chrom" and compile it. To do so, issue the following commands:
-	cd gecko
-	git checkout inmemory_guided_chrom
-	make all -C src
+4. Switch branch to the one named "inmemory_guided_chrom" and compile it. To do so, issue the following command:
+	
+	cd gecko && git checkout inmemory_guided_chrom && make all -C src
+	
 
 5. Now run the script "guidefastas" in the bin folder. See below:
 
