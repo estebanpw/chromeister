@@ -3,13 +3,21 @@ An ultra fast, heuristic approach to detect conserved signals in extremely large
 
 ## Requirements
 
-GCC compiler (any version that is not completely outdated should do) and the R-base package (default R installation should do) with no extra packages.
+GCC compiler (any version that is not completely outdated should do) and the R programming language with the package "dplyr".
+
 Simply download the .zip and unzip it, or clone the repository.
-Then issue the following commands:
+Then issue the following command:
 
-cd chromeister/src && make all
+1. cd chromeister/src && make all
 
-You are ready to go!
+And then open an R session and install the dplyr package by doing:
+
+1. R
+2. install.packages("dplyr")
+
+This should install the R package dplyr.
+
+If the installation finished without errors, you are ready to go!
 
 ## Use
 
@@ -35,7 +43,8 @@ run_and_plot_chromeister.sh (input sequence A) (input sequence B) (KMER size) (D
 This will generate the following items:
 
 *	Comparison matrix, i.e. a scaled matrix containing the unique and inexact hits
-*	Plot of the comparison with the automatic scoring distance
+*	Plot of the comparison with the automatic scoring distance and grid separating different sequences (chromosomes for instance)
+*	CSV file containing the coordinates of each sequence/chromosome contained within the query and the reference
 *	Events file. A text file where each row is a synteny block. Note: these events are Large-Scale Genome Rearrangements heuristically determined and classified as {Synteny block, transposition, inversion, ...} - but this is only an informative labelling that only considers coordinates - do not blindly believe in the classification, but rather do your own labelling based on the events.
 *	Guides to be used in an exhaustive GECKO comparison (reduces runtime)
 

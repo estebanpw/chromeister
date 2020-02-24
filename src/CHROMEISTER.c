@@ -16,6 +16,7 @@ USAGE       Usage is described by calling ./CHROMEISTER --help
 #include <math.h>
 #include <string.h>
 #include <ctype.h>
+#include <libgen.h>
 #include "structs.h"
 #include "alignmentFunctions.h"
 #include "commonFunctions.h"
@@ -26,10 +27,11 @@ USAGE       Usage is described by calling ./CHROMEISTER --help
 uint64_t custom_kmer = 32; // Defined as external in structs.h
 uint64_t diffuse_z = 4; // Defined as external in structs.h
 
-uint64_t get_seq_len(FILE * f);
+char database_name[MAXSTR], query_name[MAXSTR]; 
 
+uint64_t get_seq_len(FILE * f, FILE * labels, int value);
 
-void init_args(int argc, char ** av, FILE ** query, FILE ** database, FILE ** out_database, uint64_t * custom_kmer, uint64_t * dimension, uint64_t * diffuse_z);
+void init_args(int argc, char ** av, FILE ** query, FILE ** database, FILE ** out_database, FILE ** out_labels, uint64_t * custom_kmer, uint64_t * dimension, uint64_t * diffuse_z);
 
 int main(int argc, char ** av){
 
@@ -63,11 +65,11 @@ int main(int argc, char ** av){
     uint64_t i, j;
 
     //query to read kmers from, database to find seeds
-    FILE * query = NULL, * database = NULL, * out_database = NULL;
+    FILE * query = NULL, * database = NULL, * out_database = NULL, * out_labels = NULL; 
     uint64_t dimension = 1000; // Default 1000 * 1000
     
     
-    init_args(argc, av, &query, &database, &out_database, &custom_kmer, &dimension, &diffuse_z);
+    init_args(argc, av, &query, &database, &out_database, &out_labels, &custom_kmer, &dimension, &diffuse_z);
 
 
 
@@ -106,7 +108,7 @@ int main(int argc, char ** av){
     uint64_t aprox_len_db = aprox_len_query;
     rewind(database);
     */
-    uint64_t aprox_len_query = get_seq_len(database);
+    uint64_t aprox_len_query = get_seq_len(database, out_labels, 0);
     uint64_t aprox_len_db = aprox_len_query;
 
     uint64_t a_hundreth = (aprox_len_query/100);
@@ -254,7 +256,7 @@ int main(int argc, char ** av){
     //fseek(query, 0, SEEK_END);
     //aprox_len_query = ftell(query);
     //rewind(query);
-    aprox_len_query = get_seq_len(query);
+    aprox_len_query = get_seq_len(query, out_labels, 1);
 
     //uint64_t reallocs_hash_holder_table = 1;
     //uint64_t n_items_hash_holder_table = aprox_len_query / 5;
@@ -589,11 +591,13 @@ int main(int argc, char ** av){
     }
     free(representation);
     if(out_database != NULL) fclose(out_database);
+	fclose(query);
+	fclose(out_labels);
     
     return 0;
 }
 
-void init_args(int argc, char ** av, FILE ** query, FILE ** database, FILE ** out_database, uint64_t * custom_kmer, uint64_t * dimension, uint64_t * diffuse_z){
+void init_args(int argc, char ** av, FILE ** query, FILE ** database, FILE ** out_database, FILE ** out_labels, uint64_t * custom_kmer, uint64_t * dimension, uint64_t * diffuse_z){
 
     int pNum = 0;
     while(pNum < argc){
@@ -611,16 +615,20 @@ void init_args(int argc, char ** av, FILE ** query, FILE ** database, FILE ** ou
             exit(1);
         }
         if(strcmp(av[pNum], "-query") == 0){
-            *query = fopen64(av[pNum+1], "rt");
+            *query = fopen(av[pNum+1], "rt");
+            strcpy(query_name, basename(av[pNum+1]));
             if(query==NULL) terror("Could not open query file");
         }
         if(strcmp(av[pNum], "-db") == 0){
-            *database = fopen64(av[pNum+1], "rt");
+            *database = fopen(av[pNum+1], "rt");
+            strcpy(database_name, basename(av[pNum+1]));
             if(database==NULL) terror("Could not open database file");
         }
         if(strcmp(av[pNum], "-out") == 0){
             *out_database = fopen(av[pNum+1], "wt");
             if(out_database==NULL) terror("Could not open output database file");
+            *out_labels = fopen(strcat(av[pNum+1], ".csv"), "wt");
+            if(out_labels==NULL) terror("Could not open output labels file");
         }
         if(strcmp(av[pNum], "-kmer") == 0){
             *custom_kmer = (uint64_t) atoi(av[pNum+1]);
@@ -633,35 +641,51 @@ void init_args(int argc, char ** av, FILE ** query, FILE ** database, FILE ** ou
             if(*diffuse_z == 0 || *diffuse_z > 32) terror("Z must satisfy 0<z<=32");
 
         }
-
         if(strcmp(av[pNum], "-dimension") == 0){
             *dimension = (uint64_t) atoi(av[pNum+1]);
             if(*dimension < 1) terror("Dimension must be a positive integer");
         }
         
         pNum++;
+
     }
     
     if(*query==NULL || *database==NULL || *out_database==NULL) terror("A query, database and output file is required");
 }
 
-uint64_t get_seq_len(FILE * f) {
+uint64_t get_seq_len(FILE * f, FILE * labels, int value){
+    //Pasarle el file con el nombre s
     char c = '\0';
     uint64_t l = 0;
+    uint64_t p = 0; 
+    int counter = 1; 
+
+    if (value) fprintf(labels, "%s (X-Axis)\n", query_name);
+    else fprintf(labels, "%s (Y-Axis)\n", database_name);
+
+    fprintf(labels, "ID,header_name,length (bp),accumulated_length\n");
 
     while(!feof(f)){
         c = getc(f);
-
         if(c == '>'){
-            while(c != '\n') c = getc(f);
+            if(counter > 1) fprintf(labels, ",%"PRIu64",%"PRIu64"\n", p, l);
+            fprintf(labels, "%d,", counter);
+            p = 0;
+            c = getc(f);
+            while(c != '\n')
+            {
+                fprintf(labels, "%c", c);
+                c = getc(f);
+            }
+            counter++;
         }
         c = toupper(c);
         if(c >= 'A' && c <= 'Z'){
-            ++l;
+            ++l; ++p;
         }
     }
-
-
+    fprintf(labels, ",%"PRIu64",%"PRIu64"\n", p, l); 
+    fprintf(labels, "#\n");
     rewind(f);
     return l;
 }
