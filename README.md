@@ -17,7 +17,7 @@ And then open an R session and install the dplyr package by doing:
 
 This should install the R package dplyr.
 
-If the installation finished without errors, you are ready to go!
+If the installation finished without errors, you are ready to go! In case you can not install dplyr (or do not wish to) you can still use CHROMEISTER (but the dotplot will show no grid).
 
 ## Use
 
@@ -30,15 +30,19 @@ You can run CHROMEISTER directly by issuing:
 
 CHROMEISTER -query seqX -db seqY -out dotplot.mat && Rscript compute_score.R dotplot.mat 1000
 
+If you do not want a grid on the output dotplot (which is recommended when running comparisons with a lot of scaffolds for instance) then run the same command but replace compute_score by compute_score-nogrid, see below:
+
+CHROMEISTER -query seqX -db seqY -out dotplot.mat && Rscript compute_score-nogrid.R dotplot.mat 1000
+
 The 1000 value is the default size of dotplot.mat, i.e. the resolution of the matrix -- if you want to change this (for example to generate a larger image (if you use 2000 it will generate a plot of 2000x2000, so be careful) include also the parameter -dimension in CHROMEISTER. Example command with larger resolution:
 
 CHROMEISTER -query seqX -db seqY -out dotplot.mat -dimension 2000 && Rscript compute_score.R dotplot.mat 2000
 
 or you can also use the script that is in the bin folder (which will do the above for you):
 
-run_and_plot_chromeister.sh (input sequence A) (input sequence B) (KMER size) (DIMENSION of plot) (inexactitude level)
+run_and_plot_chromeister.sh (input sequence A) (input sequence B) (KMER size) (DIMENSION of plot) (inexactitude level) [optional: grid]
 
-(see parameters at the end)
+(see parameters at the end) (the grid keyword at the end can be included/omitted depending if you want grid in the output dotplot)
 
 This will generate the following items:
 

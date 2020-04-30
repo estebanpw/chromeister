@@ -1,11 +1,15 @@
-#!/usr/bin/env Rscript
-suppressWarnings(suppressMessages(library(dplyr)))
 
+#!/usr/bin/env Rscript
 args = commandArgs(trailingOnly=TRUE)
 
 if(length(args) < 2){
   stop("USE: Rscript --vanilla plot.R <matrix> <matsize>")
 }
+
+
+
+
+
 
 growing_regions <- function(mat, reward = 6, penalty = 5, sidePenalty = 3, MAXHSPS = 500, TH = 10, WSIZE = 7){
 
@@ -204,7 +208,7 @@ detect_events <- function(HSPS, sampling){
 
 paint_frags <- function(HSPS, l, sampling){
   
-  plot(c(HSPS[1,1]*sampling, HSPS[1,3]*sampling), c(HSPS[1,2]*sampling, HSPS[1,4]*sampling), xlim = c(1,l*sampling), ylim = c(1,l*sampling), type="l", xlab="X-genome",ylab="Y-genome", axes = FALSE)
+  plot(c(HSPS[1,1]*sampling, HSPS[1,3]*sampling), c(HSPS[1,2]*sampling, HSPS[1,4]*sampling), xlim = c(1,l*sampling), ylim = c(1,l*sampling), type="l", xlab="X-genome",ylab="Y-genome")
   for(i in 2:length(HSPS[,1])){
     if(sum(HSPS[i,]) > 0){
       lines(c(HSPS[i,1]*sampling, HSPS[i,3]*sampling), c(HSPS[i,2]*sampling, HSPS[i,4]*sampling))
@@ -261,54 +265,25 @@ downsample <- function(mat, downscale){
   return (m)
 }
 
-# Getting the correct name of the file
+
+
+
+
+
+
 path_mat = args[1]
+
+
 fancy_name <- strsplit(path_mat, "/")
 fancy_name <- (fancy_name[[1]])[length(fancy_name[[1]])]
 
-all_content <- unlist(readLines(paste(path_mat, ".csv", sep = "")))
-skip_first <- all_content[-1]
-
-# Get the titles from the label file, then parse the .fasta and axis part from them. 
-seq_y_title <- all_content[1]
-seq_x_title <- all_content[match("#",all_content) + 1]
-seq_y_title <- substr(seq_y_title, 1, nchar(seq_y_title) - 15)
-seq_x_title <- substr(seq_x_title, 1, nchar(seq_x_title) - 15)
-
-labels <- read.csv(textConnection(skip_first), header = TRUE, row.names=NULL)
-
-# Gets the point that divides the Y from the X axis. 
-end_axis = which(labels == "#")
-query_division <- end_axis[1]
-
-# Calculate the difference in lenghts between Y and X axis, since they might have a different amount of chromosomes.
-seq_difference <- end_axis[2]-2*end_axis[1]-2
-
-tick_labels <- select(labels, ID)
-# Honestly, this could be done with a simple counter, but if we somehow change the labels in the .csv, we use this way. 
-seq_y_labels <- unlist(head(tick_labels, query_division - 1), use.names = FALSE)
-seq_x_labels <- unlist(tail(tick_labels, query_division + seq_difference), use.names = FALSE)
-
-length(seq_x_labels) = length(seq_x_labels) - 1
-
-headers <- select(labels, accumulated_length)
-
-seq_y_ticks <- unlist(head(headers, query_division - 1), use.names = FALSE)
-seq_x_ticks <- unlist(tail(headers, query_division + seq_difference), use.names = FALSE)
-length(seq_x_ticks) = length(seq_x_ticks) - 1
-
-# Read sequence lenghts (this could be changed so it is read from the labels file).
+# Read sequence lenghts
 con <- file(path_mat,"r")
 seq_lengths <- readLines(con, n=2)
 seq_x_len <- as.numeric(seq_lengths[1])
 seq_y_len <- as.numeric(seq_lengths[2])
 close(con)
 
-# Add the last tick to the x and y axis, which is the 0 value. 
-seq_x_ticks <- as.numeric(as.character(seq_x_ticks))
-seq_x_ticks <- c(0, seq_x_ticks)
-seq_y_ticks <- as.numeric(as.character(seq_y_ticks))
-seq_y_ticks <- c(0, seq_y_ticks)
 
 data <- as.matrix(read.csv(path_mat, sep = " ", skip=2))
 
@@ -317,11 +292,14 @@ name_x <- strsplit(fancy_name, "-")[[1]][1]
 name_y <- strsplit(fancy_name, "-")[[1]][2]
 
 # Max of columns
+
 len_i <- as.numeric(args[2])
 len_j <- as.numeric(args[2])
 
+
 score_density <- data
 aux_density <- data
+
 
 pmax_pos <- which.max(aux_density[,1])
 for(i in 1:len_i){
@@ -351,6 +329,13 @@ for(i in 1:len_i){
     pmax_pos <- cmax_pos
   }
 }
+
+
+
+
+
+
+
 
 
 score_copy <- score_density
@@ -464,50 +449,17 @@ for(i in 1:length(events[,1])){
   write(as.character(events[i,]), file=paste(path_mat,".events.txt", sep=""), append = TRUE, sep =",", ncolumns=6)  
 }
 
-seq_x_percentages <- vector()
-seq_y_percentages <- vector()
 
-for (x_tick in seq_x_ticks)
-{
-  seq_x_percentages <- c(seq_x_percentages, x_tick/seq_x_len)
-}
 
-for (y_tick in seq_y_ticks)
-{
-  seq_y_percentages <- c(seq_y_percentages, 1 - y_tick/seq_y_len)
-}
-
-seq_x_ticks <- vector()
-seq_y_ticks <- vector()
-
-for (i in 1:length(seq_x_labels))
-{
-  seq_x_ticks <- c(seq_x_ticks, (seq_x_percentages[i] + seq_x_percentages[i+1]) / 2)
-}
-for (i in 1:length(seq_y_labels))
-{
-  seq_y_ticks <- c(seq_y_ticks, (seq_y_percentages[i] + seq_y_percentages[i+1]) / 2)
-}
+coords1 <- round(seq(from=0, to=1, by=0.2)*seq_x_len)
+coords2 <- round(seq(from=0, to=1, by=0.2)*seq_y_len)
 
 final_image <- apply((t(score_copy)), 2, rev)
 
 png(paste(path_mat, ".filt.png", sep=""), width = length(data[,1]), height = length(data[,1]))
-image(t(final_image), col = grey(seq(1, 0, length = 256)), xaxt='n', yaxt='n', main = paste(fancy_name, paste("filt. score=", score)), xlab = seq_x_title, ylab = seq_y_title, axes = FALSE)
-axis(1, tick = TRUE, labels = FALSE, at = seq_x_percentages)
-axis(1, tick = FALSE, labels = seq_x_labels, at = seq_x_ticks)
-axis(2, tick = TRUE, labels = FALSE, at = rev(seq_y_percentages))
-axis(2, tick = FALSE, labels = seq_y_labels, at = seq_y_ticks, las = 3)
-
-for (x_tick in seq_x_percentages)
-{
-  abline(v = x_tick, lty = 'dotted')
-}
-
-for (y_tick in seq_y_percentages)
-{
-  abline(h = y_tick, lty = 'dotted')
-}
-
+image(t(final_image), col = grey(seq(1, 0, length = 256)), xaxt='n', yaxt='n', main = paste(fancy_name, paste("filt. score=", score)), xlab = name_x, ylab = name_y, axes = FALSE)
+axis(1, tick = TRUE, labels = (coords1), at = c(0.0, 0.2, 0.4, 0.6, 0.8, 1))
+axis(2, tick = TRUE, labels = rev(coords2), at = c(0.0, 0.2, 0.4, 0.6, 0.8, 1))
 dev.off()
 
 

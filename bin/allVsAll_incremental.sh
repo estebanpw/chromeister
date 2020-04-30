@@ -7,8 +7,8 @@ KMER=$5
 DIFF=$6
 
 
-if [ $# != 6 ]; then
-	echo "***ERROR*** Use: $0 genomesDirectory1 genomesDirectory2 extension dim kmer diff"
+if [ $# -lt 6 ]; then
+	echo "***ERROR*** Use: $0 genomesDirectory1 genomesDirectory2 extension dim kmer diff [optional: grid]"
 	exit -1
 fi
 
@@ -49,7 +49,7 @@ do
 				
 				#echo "$BINDIR/run_and_plot_chromeister.sh $DIR/${seqX}.$EXT $DIR/${seqY}.$EXT 30 10000"
 				if [[ ! -f ${seqX}.$EXT-${seqY}.$EXT.mat ]]; then
-					$BINDIR/run_and_plot_chromeister.sh $DIR/${seqX}.$EXT $DIR2/${seqY}.$EXT $KMER $DIM $DIFF
+					$BINDIR/run_and_plot_chromeister.sh $DIR/${seqX}.$EXT $DIR2/${seqY}.$EXT $KMER $DIM $DIFF $7
 				fi
 			
 	done
