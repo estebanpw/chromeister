@@ -285,6 +285,7 @@ seq_y_len <- as.numeric(seq_lengths[2])
 close(con)
 
 
+
 data <- as.matrix(read.csv(path_mat, sep = " ", skip=2))
 
 # Get sequence names
@@ -314,7 +315,6 @@ for(i in 1:len_i){
     pmax_pos <- cmax_pos
   }
 }
-
 
 pmax_pos <- which.max(aux_density[1,])
 

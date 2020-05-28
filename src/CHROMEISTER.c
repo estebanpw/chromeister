@@ -62,6 +62,7 @@ int main(int argc, char ** av){
     }
     */
 
+
     uint64_t i, j;
 
     //query to read kmers from, database to find seeds
@@ -71,7 +72,7 @@ int main(int argc, char ** av){
     
     init_args(argc, av, &query, &database, &out_database, &out_labels, &custom_kmer, &dimension, &diffuse_z);
 
-
+    fprintf(stdout, "[INFO] Generating a %"PRIu64"x%"PRIu64" matrix\n", dimension, dimension); 
 
     unsigned char char_converter[91];
     char_converter[(unsigned char)'A'] = 0;
@@ -599,14 +600,14 @@ int main(int argc, char ** av){
 
 void init_args(int argc, char ** av, FILE ** query, FILE ** database, FILE ** out_database, FILE ** out_labels, uint64_t * custom_kmer, uint64_t * dimension, uint64_t * diffuse_z){
 
-    int pNum = 0;
+    int pNum = 1;
     while(pNum < argc){
         if(strcmp(av[pNum], "--help") == 0){
             fprintf(stdout, "USAGE:\n");
             fprintf(stdout, "           CHROMEISTER -query [query] -db [database] -out [outfile]\n");
             fprintf(stdout, "OPTIONAL:\n");
             fprintf(stdout, "           -kmer       [Integer:   k>1 (default 32)]\n");
-	    fprintf(stdout, "		-diffuse    [Integer:   z>0 (default 4)]\n");
+	    fprintf(stdout, "           -diffuse    [Integer:   z>0 (default 4)]\n");
             fprintf(stdout, "           -dimension  Size of the output [Integer:   d>0 (default 1000)]\n");
             fprintf(stdout, "           -out        [File path]\n");
             fprintf(stdout, "           --help      Shows help for program usage\n");
@@ -614,39 +615,46 @@ void init_args(int argc, char ** av, FILE ** query, FILE ** database, FILE ** ou
             fprintf(stdout, "PLEASE NOTICE: The reverse complementary is calculated for the QUERY.\n");
             exit(1);
         }
-        if(strcmp(av[pNum], "-query") == 0){
+        else if(strcmp(av[pNum], "-query") == 0){
             *query = fopen(av[pNum+1], "rt");
             strcpy(query_name, basename(av[pNum+1]));
             if(query==NULL) terror("Could not open query file");
         }
-        if(strcmp(av[pNum], "-db") == 0){
+        else if(strcmp(av[pNum], "-db") == 0){
             *database = fopen(av[pNum+1], "rt");
             strcpy(database_name, basename(av[pNum+1]));
             if(database==NULL) terror("Could not open database file");
         }
-        if(strcmp(av[pNum], "-out") == 0){
+        else if(strcmp(av[pNum], "-out") == 0){
             *out_database = fopen(av[pNum+1], "wt");
             if(out_database==NULL) terror("Could not open output database file");
-            *out_labels = fopen(strcat(av[pNum+1], ".csv"), "wt");
+            char newname[strlen(av[pNum+1]) + 4];
+            strcpy(newname, av[pNum+1]);
+            strcat(newname, ".csv");
+            *out_labels = fopen(newname, "wt");
             if(out_labels==NULL) terror("Could not open output labels file");
         }
-        if(strcmp(av[pNum], "-kmer") == 0){
+        else if(strcmp(av[pNum], "-kmer") == 0){
             *custom_kmer = (uint64_t) atoi(av[pNum+1]);
             if(*custom_kmer < BYTES_IN_MER) terror("K-mer size must be larger than 4");
             if(*custom_kmer % BYTES_IN_MER != 0) terror("K-mer size must be a multiple of 4");
 
         }
-        if(strcmp(av[pNum], "-diffuse") == 0){
+        else if(strcmp(av[pNum], "-diffuse") == 0){
             *diffuse_z = (uint64_t) atoi(av[pNum+1]);
             if(*diffuse_z == 0 || *diffuse_z > 32) terror("Z must satisfy 0<z<=32");
 
         }
-        if(strcmp(av[pNum], "-dimension") == 0){
+        else if(strcmp(av[pNum], "-dimension") == 0){
             *dimension = (uint64_t) atoi(av[pNum+1]);
             if(*dimension < 1) terror("Dimension must be a positive integer");
         }
+        else{
+            fprintf(stderr, "Unrecognized parameter %s\n", av[pNum]);
+            exit(-1);
+        }
         
-        pNum++;
+        pNum+=2;
 
     }
     
