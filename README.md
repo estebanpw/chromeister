@@ -94,7 +94,11 @@ First of all, consider whether it is interesting or not to use CHROMEISTER for "
 
 5. Now run the script "guidefastas" in the bin folder. See below:
 
-	bin/guidefastas.sh HOMSA.Chr.X.fasta MUSMU.Chr.X.fasta hits-XY-dotplot.mat.hits 1000 100 60 32
+	bin/guidefastas.sh HOMSA.Chr.X.fasta MUSMU.Chr.X.fasta hits-XY-dotplot.mat.hits 1000 100 60 32 0
+	
+	The 0 at the end stands for "dont show alignments". If on the other hand, you want to get the alignments (text mode such as blast) run it with a 1 at the end, such as:
+
+	bin/guidefastas.sh HOMSA.Chr.X.fasta MUSMU.Chr.X.fasta hits-XY-dotplot.mat.hits 1000 100 60 32 1
 
 Note (1): remember to include the full path to the sequences.
 Note (2): the "hits-XY-dotplot.mat.hits" file is produced by CHROMEISTER in step 1. Copy it to the folder or include full path.
@@ -119,8 +123,34 @@ USAGE:
 
 
 
+## Help
 
+1. Hanging output and program does not finish
+	If you experience this kind of output:
 
+	[INFO] Generating a 1000x1000 matrix
+
+	[INFO] Loading database
+
+	100%...[INFO] Database loaded and of length 70039485.
+
+	[INFO] Ratios: Q [6.658880e+04] D [7.003949e+04]. Lenghts: Q [66588797] D [70039485]
+
+	[INFO] Pixel size: Q [1.501754e-05] D [1.427766e-05].
+
+	[INFO] Computing absolute hit numbers.
+
+	100%...Scanning hits table.
+
+	100%...
+
+	[INFO] Query length 66588797.
+
+	[INFO] Writing matrix.
+
+	[INFO] Found 238693 unique hits for z = 4.
+
+	But the program doesnt finish (it "hangs"), then your input sequences probably contain a lot of sequences (i.e. a multifasta with hundreds of contigs). To fix this, simply run the same command but instead of using the "compute_score.R" use the "compute_score-nogrid.R" script. This will remove the drawing of the grid which can get overflown when using too many sequences.
 
 
 
