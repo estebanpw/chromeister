@@ -286,7 +286,8 @@ close(con)
 
 
 
-data <- as.matrix(read.csv(path_mat, sep = " ", skip=2))
+#data <- as.matrix(read.csv(path_mat, sep = " ", skip=2))
+data <- as.matrix(read.table(path_mat, skip=2, sep=" "))
 
 # Get sequence names
 name_x <- strsplit(fancy_name, "-")[[1]][1]
@@ -300,6 +301,7 @@ len_j <- as.numeric(args[2])
 
 score_density <- data
 aux_density <- data
+
 
 
 pmax_pos <- which.max(aux_density[,1])

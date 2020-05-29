@@ -310,7 +310,9 @@ seq_x_ticks <- c(0, seq_x_ticks)
 seq_y_ticks <- as.numeric(as.character(seq_y_ticks))
 seq_y_ticks <- c(0, seq_y_ticks)
 
-data <- as.matrix(read.csv(path_mat, sep = " ", skip=2))
+#data <- as.matrix(read.csv(path_mat, sep = " ", skip=2))
+data <- as.matrix(read.table(path_mat, skip=2, sep=" "))
+
 
 # Get sequence names
 name_x <- strsplit(fancy_name, "-")[[1]][1]
@@ -322,6 +324,7 @@ len_j <- as.numeric(args[2])
 
 score_density <- data
 aux_density <- data
+
 
 pmax_pos <- which.max(aux_density[,1])
 for(i in 1:len_i){
@@ -351,6 +354,7 @@ for(i in 1:len_i){
     pmax_pos <- cmax_pos
   }
 }
+
 
 
 score_copy <- score_density
@@ -420,6 +424,8 @@ for(i in 1:(length(score_copy[,1]))){
     if(value < 2) score_copy[i,j] <- 0
   }
 }
+
+
 
 # To compute the score
 score <- 0

@@ -96,10 +96,10 @@ int main(int argc, char ** av){
     }
 
     //Dimensional matrix
-    uint64_t ** representation = (uint64_t **) calloc(dimension+1, sizeof(uint64_t *));
+    uint64_t ** representation = (uint64_t **) calloc(dimension, sizeof(uint64_t *));
     if(representation == NULL) terror("Could not allocate representation");
-    for(i=0; i<dimension+1; i++){
-        representation[i] = (uint64_t *) calloc(dimension+1, sizeof(uint64_t));
+    for(i=0; i<dimension; i++){
+        representation[i] = (uint64_t *) calloc(dimension, sizeof(uint64_t));
         if(representation[i] == NULL) terror("Could not allocate second loop representation");
     }
 
@@ -563,13 +563,13 @@ int main(int argc, char ** av){
     fprintf(out_database, "%"PRIu64"\n", aprox_len_db);
      // And replace 2's with 1's 
 	
-    for(i=0; i<dimension+1; i++){
-        for(j=0; j<dimension; j++){
+    for(i=0; i<dimension; i++){
+        for(j=0; j<dimension-1; j++){
             fprintf(out_database, "%"PRIu64" ", representation[i][j]);
 	    unique_diffuse += representation[i][j];
         }
-        fprintf(out_database, "%"PRIu64"\n",  representation[i][dimension]);
-	unique_diffuse += representation[i][dimension];
+        fprintf(out_database, "%"PRIu64"\n",  representation[i][dimension-1]);
+	unique_diffuse += representation[i][dimension-1];
     }
 
     fprintf(stdout, "[INFO] Found %"PRIu64" unique hits for z = %"PRIu64".\n", unique_diffuse, diffuse_z);
