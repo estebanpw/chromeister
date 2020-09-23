@@ -613,7 +613,7 @@ void init_args(int argc, char ** av, FILE ** query, FILE ** database, FILE ** ou
             fprintf(stdout, "           --help      Shows help for program usage\n");
             fprintf(stdout, "\n");
             fprintf(stdout, "PLEASE NOTICE: The reverse complementary is calculated for the QUERY.\n");
-            exit(1);
+            exit(0);
         }
         else if(strcmp(av[pNum], "-query") == 0){
             *query = fopen(av[pNum+1], "rt");
