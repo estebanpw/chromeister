@@ -13,6 +13,7 @@ Then issue the following command:
 And then open an R session and install the dplyr package by doing:
 
 ```R```
+
 ```install.packages("dplyr")```
 
 This should install the R package dplyr.
