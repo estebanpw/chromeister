@@ -8,12 +8,12 @@ GCC compiler (any version that is not completely outdated should do) and the R p
 Simply download the .zip and unzip it, or clone the repository.
 Then issue the following command:
 
-1. cd chromeister/src && make all
+```cd chromeister/src && make all```
 
 And then open an R session and install the dplyr package by doing:
 
-1. R
-2. install.packages("dplyr")
+```R```
+```install.packages("dplyr")```
 
 This should install the R package dplyr.
 
@@ -28,19 +28,19 @@ To do so, use the binaries at the bin folder:
 
 You can run CHROMEISTER directly by issuing:
 
-CHROMEISTER -query seqX -db seqY -out dotplot.mat && Rscript compute_score.R dotplot.mat 1000
+```CHROMEISTER -query seqX -db seqY -out dotplot.mat && Rscript compute_score.R dotplot.mat 1000```
 
 If you do not want a grid on the output dotplot (which is recommended when running comparisons with a lot of scaffolds for instance) then run the same command but replace compute_score by compute_score-nogrid, see below:
 
-CHROMEISTER -query seqX -db seqY -out dotplot.mat && Rscript compute_score-nogrid.R dotplot.mat 1000
+```CHROMEISTER -query seqX -db seqY -out dotplot.mat && Rscript compute_score-nogrid.R dotplot.mat 1000```
 
 The 1000 value is the default size of dotplot.mat, i.e. the resolution of the matrix -- if you want to change this (for example to generate a larger image (if you use 2000 it will generate a plot of 2000x2000, so be careful) include also the parameter -dimension in CHROMEISTER. Example command with larger resolution:
 
-CHROMEISTER -query seqX -db seqY -out dotplot.mat -dimension 2000 && Rscript compute_score.R dotplot.mat 2000
+```CHROMEISTER -query seqX -db seqY -out dotplot.mat -dimension 2000 && Rscript compute_score.R dotplot.mat 2000```
 
 or you can also use the script that is in the bin folder (which will do the above for you):
 
-run_and_plot_chromeister.sh (input sequence A) (input sequence B) (KMER size) (DIMENSION of plot) (inexactitude level) [optional: grid]
+```run_and_plot_chromeister.sh (input sequence A) (input sequence B) (KMER size) (DIMENSION of plot) (inexactitude level) [optional: grid]```
 
 (see parameters at the end) (the grid keyword at the end can be included/omitted depending if you want grid in the output dotplot)
 
@@ -58,11 +58,11 @@ You can run massive all versus all comparisons in two diferent ways:
 
 * Comparing all the sequences in one folder. This accounts for 1/2 * n * (n+1) comparisons, hence it will not compare sequence B to sequence A if the comparison for sequence A to sequence B already existed.
 	* To run this mode, use the script in the bin folder:
-	 allVsAll.sh <sequences folder> <extension (e.g. fasta)> <matrix size (1000 for chromosomes, 2000 for full genomes)> <kmer size 32 (32 is best)> <inexactitude level (4 is recommended)> 
+	 ```allVsAll.sh <sequences folder> <extension (e.g. fasta)> <matrix size (1000 for chromosomes, 2000 for full genomes)> <kmer size 32 (32 is best)> <inexactitude level (4 is recommended)> ```
 
 * Comparing two folders containing sequences. This accounts for n * m comparisons, therefore it will compare ALL to ALL. Use this for instance to compare all chromosomes of one genome to all chromosomes of another genome.
 	* To run this mode, use the script in the bin folder:
-	 allVsAll_incremental.sh <sequences folder 1> <sequences folder 2> <extension (e.g. fasta)> <matrix size (1000 for chromosomes, 2000 for full genomes)> <kmer size 32 (32 is best)> <inexactitude level (4 is recommended)>
+	 ```allVsAll_incremental.sh <sequences folder 1> <sequences folder 2> <extension (e.g. fasta)> <matrix size (1000 for chromosomes, 2000 for full genomes)> <kmer size 32 (32 is best)> <inexactitude level (4 is recommended)>```
 
 At the end of both comparisons, an index will be created summarizing the scores per each comparison. This index has the following format (see header and example below):
 header: <SpX, SpY, IDX, IDY, IMG, CHNumberX, CHNumberY, Score, LengthX, LengthY>
@@ -79,26 +79,26 @@ First of all, consider whether it is interesting or not to use CHROMEISTER for "
 
 1. First, run CHROMEISTER like this:
 
-	./CHROMEISTER -query HOMSA.Chr.X.fasta -db MUSMU.Chr.X.fasta -out dotplot.mat -dimension 1000 && Rscript compute_score.R dotplot.mat 1000
+	```./CHROMEISTER -query HOMSA.Chr.X.fasta -db MUSMU.Chr.X.fasta -out dotplot.mat -dimension 1000 && Rscript compute_score.R dotplot.mat 1000```
 
 2. Check the "dotplot.mat.filt.png" corresponding to the dotplot between both chromosomes to see if there is any similarity. If so, proceed to next step.
 
 3. Clone the following repository: https://github.com/estebanpw/gecko
 
-	git clone https://github.com/estebanpw/gecko
+	```git clone https://github.com/estebanpw/gecko```
 
 4. Switch branch to the one named "inmemory_guided_chrom" and compile it. To do so, issue the following command:
 	
-	cd gecko && git checkout inmemory_guided_chrom && make all -C src
+	```cd gecko && git checkout inmemory_guided_chrom && make all -C src```
 	
 
 5. Now run the script "guidefastas" in the bin folder. See below:
 
-	bin/guidefastas.sh HOMSA.Chr.X.fasta MUSMU.Chr.X.fasta hits-XY-dotplot.mat.hits 1000 100 60 32 0
+	```bin/guidefastas.sh HOMSA.Chr.X.fasta MUSMU.Chr.X.fasta hits-XY-dotplot.mat.hits 1000 100 60 32 0```
 	
 	The 0 at the end stands for "dont show alignments". If on the other hand, you want to get the alignments (text mode such as blast) run it with a 1 at the end, such as:
 
-	bin/guidefastas.sh HOMSA.Chr.X.fasta MUSMU.Chr.X.fasta hits-XY-dotplot.mat.hits 1000 100 60 32 1
+	```bin/guidefastas.sh HOMSA.Chr.X.fasta MUSMU.Chr.X.fasta hits-XY-dotplot.mat.hits 1000 100 60 32 1```
 
 Note (1): remember to include the full path to the sequences.
 Note (2): the "hits-XY-dotplot.mat.hits" file is produced by CHROMEISTER in step 1. Copy it to the folder or include full path.
