@@ -153,9 +153,13 @@ USAGE:
 
 	But the program doesnt finish (it "hangs"), then your input sequences probably contain a lot of sequences (i.e. a multifasta with hundreds of contigs). To fix this, simply run the same command but instead of using the "compute_score.R" use the "compute_score-nogrid.R" script. This will remove the drawing of the grid which can get overflown when using too many sequences.
 
+## Citing
 
+If you use or have used CHROMEISTER in your research, please cite the following article:
 
+Esteban Pérez-Wohlfeil, Sergio Diaz-del-Pino and Oswaldo Trelles. "Ultra-fast genome comparison for large-scale genomic experiments." Scientific reports 9, no. 1 (2019): 1-10.
 
+[Link to manuscript](https://www.nature.com/articles/s41598-019-46773-w)
 
 
 
