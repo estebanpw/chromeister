@@ -1,5 +1,5 @@
 #!/usr/bin/env Rscript
-suppressWarnings(suppressMessages(library(dplyr)))
+#suppressWarnings(suppressMessages(library(dplyr)))
 
 args = commandArgs(trailingOnly=TRUE)
 
@@ -284,14 +284,23 @@ query_division <- end_axis[1]
 # Calculate the difference in lenghts between Y and X axis, since they might have a different amount of chromosomes.
 seq_difference <- end_axis[2]-2*end_axis[1]-2
 
-tick_labels <- select(labels, ID)
+#print(labels)
+#print(labels["ID"])
+#tick_labels <- select(labels, ID)
+
+tick_labels <- labels["ID"]
+
 # Honestly, this could be done with a simple counter, but if we somehow change the labels in the .csv, we use this way. 
 seq_y_labels <- unlist(head(tick_labels, query_division - 1), use.names = FALSE)
 seq_x_labels <- unlist(tail(tick_labels, query_division + seq_difference), use.names = FALSE)
 
 length(seq_x_labels) = length(seq_x_labels) - 1
 
-headers <- select(labels, accumulated_length)
+
+
+#headers <- select(labels, accumulated_length)
+headers <- labels["accumulated_length"]
+
 
 seq_y_ticks <- unlist(head(headers, query_division - 1), use.names = FALSE)
 seq_x_ticks <- unlist(tail(headers, query_division + seq_difference), use.names = FALSE)
