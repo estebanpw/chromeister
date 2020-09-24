@@ -3,22 +3,14 @@ An ultra fast, heuristic approach to detect conserved signals in extremely large
 
 ## Requirements
 
-GCC compiler (any version that is not completely outdated should do) and the R programming language with the package "dplyr".
+GCC compiler (any version that is not completely outdated should do) and the R programming language.
 
 Simply download the .zip and unzip it, or clone the repository.
 Then issue the following command:
 
 ```cd chromeister/src && make all```
 
-And then open an R session and install the dplyr package by doing:
-
-```R```
-
-```install.packages("dplyr")```
-
-This should install the R package dplyr.
-
-If the installation finished without errors, you are ready to go! In case you can not install dplyr (or do not wish to) you can still use CHROMEISTER (but the dotplot will show no grid).
+If the installation finished without errors, you are ready to go!
 
 ## Use
 
