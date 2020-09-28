@@ -114,7 +114,14 @@ USAGE:
 * -diffuse    Integer:   z>0 (default 4) Use 4 for everything - if using large plant genomes you can try using 1
 * -dimension  Size of the output matrix and plot. Integer:   d>0 (default 1000) Use 1000 for everything that is not full genome size, where 2000 is recommended
 
+## Test data
 
+You can test CHROMEISTER with the two mycoplasma sequences provided in the 'test-data' folder. You can do so by running the following commands (from within the test-data folder):
+
+```../bin/CHROMEISTER -query mycoplasma-232.fasta -db mycoplasma-7422.fasta -out mycoplasma-232-7422.mat -dimension 500```
+```Rscript ../bin/compute_score.R mycoplasma-232-7422.mat 500```
+
+Note: in this example we used size 500 since the two sequences are quite small.
 
 ## Help
 

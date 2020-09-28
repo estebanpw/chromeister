@@ -1,5 +1,6 @@
 #ifndef COMMON_FUNCTIONS_H
 #define COMMON_FUNCTIONS_H
+#include <pthread.h>
 #include "structs.h"
 /**
  * Print the error message 's' and exit(-1)
