@@ -3,7 +3,7 @@ An ultra fast, heuristic approach to detect conserved signals in extremely large
 
 ## Requirements
 
-GCC compiler (any version that is not completely outdated should do) and the R programming language.
+GCC compiler (any version that is not completely outdated should do) and the R programming language. Please make sure that on your linux CC resolves to GCC, otherwise it might not work.
 
 Simply download the .zip and unzip it, or clone the repository.
 Then issue the following command:
