@@ -123,6 +123,26 @@ You can test CHROMEISTER with the two mycoplasma sequences provided in the 'test
 
 Note: in this example we used size 500 since the two sequences are quite small.
 
+## Example runs
+
+### Chromosome example 
+
+Comparing two chromosomes (Homo sapiens Chr X vs Mus musculus Chr X) in a minute:
+
+run_and_plot_chromeister.sh HOMSA.Chr.X.fasta MUSMU.Chr.X.fasta 32 1000 4
+
+![HOMSA vs MUSMU](https://github.com/estebanpw/chromeister/blob/master/images/HOMSA.Chr.X.fasta-MUSMU.Chr.X.fasta.mat.filt.png)
+
+
+### Multi-fasta
+
+Comparing the full genome of the Gallus gallus against the Meleagris gallopavo with all their chromosomes including auto-generated grid:
+
+run_and_plot_chromeister.sh GALGA.Chr.complete.fasta MELGA.Chr.complete.fasta 32 1000 4 grid
+
+![MULTI-FASTA](https://github.com/estebanpw/chromeister/blob/master/images/GALGA.Chr.complete.fasta-MELGA.Chr.complete.fasta.mat.filt.png)
+
+
 ## Help
 
 1. Hanging output and program does not finish
