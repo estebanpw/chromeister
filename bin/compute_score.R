@@ -304,6 +304,8 @@ headers <- labels["accumulated_length"]
 
 seq_y_ticks <- unlist(head(headers, query_division - 1), use.names = FALSE)
 seq_x_ticks <- unlist(tail(headers, query_division + seq_difference), use.names = FALSE)
+
+
 length(seq_x_ticks) = length(seq_x_ticks) - 1
 
 # Read sequence lenghts (this could be changed so it is read from the labels file).

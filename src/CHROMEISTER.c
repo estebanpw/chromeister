@@ -682,6 +682,7 @@ uint64_t get_seq_len(FILE * f, FILE * labels, int value){
             c = getc(f);
             while(c != '\n')
             {
+				if(c == ',') c = ' ';
                 fprintf(labels, "%c", c);
                 c = getc(f);
             }
