@@ -465,7 +465,8 @@ for(i in 5:len_i){
 
 
 score <- (score/(len_i^2))
-print(score)
+#print(score)
+cat(score, "\n")
 
 
 sampling_value <- 5
@@ -523,7 +524,7 @@ for (y_tick in seq_y_percentages)
   abline(h = y_tick, lty = 'dotted')
 }
 
-dev.off()
+tmp <- dev.off()
 
 
 # Output pixel coordinates of highly conserved signals

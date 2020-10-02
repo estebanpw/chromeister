@@ -436,7 +436,8 @@ for(i in 5:len_i){
 
 
 score <- (score/(len_i^2))
-print(score)
+#print(score)
+cat(score, "\n")
 
 
 sampling_value <- 5
@@ -461,7 +462,7 @@ png(paste(path_mat, ".filt.png", sep=""), width = length(data[,1]), height = len
 image(t(final_image), col = grey(seq(1, 0, length = 256)), xaxt='n', yaxt='n', main = paste(fancy_name, paste("filt. score=", score)), xlab = name_x, ylab = name_y, axes = FALSE)
 axis(1, tick = TRUE, labels = (coords1), at = c(0.0, 0.2, 0.4, 0.6, 0.8, 1))
 axis(2, tick = TRUE, labels = rev(coords2), at = c(0.0, 0.2, 0.4, 0.6, 0.8, 1))
-dev.off()
+tmp <- dev.off()
 
 
 # Output pixel coordinates of highly conserved signals
