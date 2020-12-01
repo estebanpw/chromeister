@@ -165,7 +165,7 @@ growing_regions <- function(mat, reward = 6, penalty = 5, sidePenalty = 3, MAXHS
   return (HSPS)
 }
 
-detect_events <- function(HSPS, sampling){
+detect_events <- function(HSPS, sampling, xlen, ylen, dim){
   
   DIAG_SEPARATION <- 10
   # same as HSPS but adding the event
@@ -182,11 +182,19 @@ detect_events <- function(HSPS, sampling){
       if(HSPS[i,1] > HSPS[i,3]) is_inverted = TRUE
       if(abs(HSPS[i,1] - HSPS[i,2]) > DIAG_SEPARATION && abs(HSPS[i,3] - HSPS[i,4]) > DIAG_SEPARATION) is_diagonal = FALSE
       
-      output[i,1] <- HSPS[i,1] * sampling
-      output[i,2] <- HSPS[i,2] * sampling
-      output[i,3] <- HSPS[i,3] * sampling
-      output[i,4] <- HSPS[i,4] * sampling
-      output[i,5] <- HSPS[i,5] * sampling
+      output[i,1] <- as.numeric(round(((HSPS[i,1] * sampling) / dim) * xlen, 0))
+      output[i,2] <- as.numeric(round(((HSPS[i,2] * sampling) / dim) * ylen, 0))
+      output[i,3] <- as.numeric(round(((HSPS[i,3] * sampling) / dim) * xlen, 0))
+      output[i,4] <- as.numeric(round(((HSPS[i,4] * sampling) / dim) * ylen, 0))
+
+
+      max_len_x <- as.numeric(as.numeric(output[i,3]) - as.numeric(output[i,1]))
+      max_len_y <- as.numeric(as.numeric(output[i,4]) - as.numeric(output[i,2]))
+      if(HSPS[i,1] > HSPS[i,3]) {
+         max_len_x <- as.numeric(as.numeric(output[i,1]) - as.numeric(output[i,3]))
+      }
+
+      output[i,5] <- max(max_len_x, max_len_y)
       
       if(is_diagonal) output[i,6] <- "synteny block"
       if(is_diagonal && is_inverted) output[i,6] <- "inversion"
@@ -474,11 +482,11 @@ cat(score, "\n")
 sampling_value <- 5
 submat <- downsample(score_copy, sampling_value)
 m <- growing_regions((submat), WSIZE = 7, TH = 5, penalty = 15)
-events <- detect_events(m, sampling_value)
+events <- detect_events(m, sampling_value, seq_x_len, seq_y_len, as.numeric(args[2]))
 events <- rbind(events, c(0,0,0,0,0,"Null event"))
 write(as.character(c(seq_x_len, seq_y_len)), file=paste(path_mat,".events.txt", sep=""), append = TRUE, sep =",", ncolumns=2)
 write(as.character(c("x1", "y1", "x2", "y2", "len", "event")), file=paste(path_mat,".events.txt", sep=""), append = TRUE, sep =",", ncolumns=6)
-for(i in 1:length(events[,1])){
+for(i in 1:(length(events[,1])-1)){
   write(as.character(events[i,]), file=paste(path_mat,".events.txt", sep=""), append = TRUE, sep =",", ncolumns=6)  
 }
 

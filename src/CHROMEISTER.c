@@ -112,7 +112,7 @@ int main(int argc, char ** av){
     uint64_t aprox_len_query = get_seq_len(database, out_labels, 0);
     uint64_t aprox_len_db = aprox_len_query;
 
-    uint64_t a_hundreth = (aprox_len_query/100);
+    uint64_t a_hundreth = (aprox_len_query/5); // Actually a fifth right now
 
     unsigned char curr_kmer[custom_kmer], reverse_kmer[custom_kmer];
     curr_kmer[0] = reverse_kmer[0] = '\0';
@@ -265,7 +265,7 @@ int main(int argc, char ** av){
     //Hash_holder * hash_holder_table = (Hash_holder *) calloc(n_items_hash_holder_table, sizeof(Hash_holder));
     //if(hash_holder_table == NULL) terror("Could not allocate hash holding table");
 
-    a_hundreth = (aprox_len_query/100);
+    a_hundreth = (aprox_len_query/5); // Actually a fifth right now
     double pixel_size_query = (double) dimension / (double) aprox_len_query;
     double ratio_query = (double) aprox_len_query / dimension;
     
