@@ -27,7 +27,10 @@ else
 	(Rscript $BINDIR/compute_score-nogrid.R $FILE1-$FILE2.mat $DIM) &> $FILE1-$FILE2.scr.txt
 
 fi
-#$BINDIR/plot.R $FILE1-$FILE2.mat
+
+source $BINDIR/../chromeisterenv/bin/activate
+python3 $BINDIR/detect_events.py $FILE1-$FILE2.mat.raw.txt
+deactivate
 
 
 #rm $FILE1-$FILE2.mat
