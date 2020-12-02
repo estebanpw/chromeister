@@ -21,6 +21,7 @@ readheader.close()
 
 # Load input matrix which must be generated with the R script compute-score (w/o grid)
 matrix = np.loadtxt(sys.argv[1], skiprows = 2)
+matrix = np.flip(matrix, axis=0)
 
 # Get dimension of the matrix
 dim = matrix.shape[0]
