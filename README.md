@@ -6,14 +6,18 @@ An ultra fast, heuristic approach to detect conserved signals in extremely large
 
 ## Requirements
 
-GCC compiler (any version that is not completely outdated should do) and the R programming language. Please make sure that on your linux CC resolves to GCC, otherwise it might not work.
+GCC compiler (any version that is not completely outdated should do), the R programming language (base installation) and python3 (tested on 3.5 and 3.8). Please make sure that on your linux CC resolves to GCC, otherwise it might not work.
 
 Simply download the .zip and unzip it, or clone the repository.
 Then issue the following command:
 
-```cd chromeister/src && make all```
+`cd chromeister && make all -C src/ && python3 -m venv chromeisterenv && source chromeisterenv/bin/activate && pip install -r src/requirements.txt`
 
-If the installation finished without errors, you are ready to go!
+This will compile CHROMEISTER and create a virtualenv where the python libraries will be installed (see `src/requirements.txt`)
+
+If the installation finished without errors, you are ready to go! If you encounter the following problem `ImportError: No module named 'skbuild'` you might need to do `source chromeisterenv/bin/activate && pip install --upgrade pip` and then run `pip install -r src/requirements.txt` to finish the installation. 
+
+**NOTE**: python and its libraries are only used for the detection of events. If the binaries compile (i.e. the `make all`) then you can still run CHROMEISTER and plot the results, even if the python installation did not work.
 
 ## Use
 
