@@ -466,6 +466,10 @@ coords2 <- round(seq(from=0, to=1, by=0.2)*seq_y_len)
 
 final_image <- apply((t(score_copy)), 2, rev)
 
+# Save filtered (but raw, no axis) comparison matrix to detect lines on it later
+write(as.character(c(seq_x_len, seq_y_len)), file=paste(path_mat,".raw.txt", sep=""), append = FALSE, ncolumns=1)
+write.table(final_image, file=paste(path_mat,".raw.txt", sep=""), row.names=FALSE, col.names=FALSE, append=TRUE)
+
 png(paste(path_mat, ".filt.png", sep=""), width = length(data[,1]), height = length(data[,1]))
 image(t(final_image), col = grey(seq(1, 0, length = 256)), xaxt='n', yaxt='n', main = paste(fancy_name, paste("filt. score=", score)), xlab = name_x, ylab = name_y, axes = FALSE)
 axis(1, tick = TRUE, labels = (coords1), at = c(0.0, 0.2, 0.4, 0.6, 0.8, 1))

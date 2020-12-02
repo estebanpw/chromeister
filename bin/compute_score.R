@@ -517,6 +517,10 @@ for (i in 1:length(seq_y_labels))
 
 final_image <- apply((t(score_copy)), 2, rev)
 
+# Save filtered (but raw, no axis) comparison matrix to detect lines on it later
+write(as.character(c(seq_x_len, seq_y_len)), file=paste(path_mat,".raw.txt", sep=""), append = FALSE, ncolumns=1)
+write.table(final_image, file=paste(path_mat,".raw.txt", sep=""), row.names=FALSE, col.names=FALSE)
+
 png(paste(path_mat, ".filt.png", sep=""), width = length(data[,1]), height = length(data[,1]))
 image(t(final_image), col = grey(seq(1, 0, length = 256)), xaxt='n', yaxt='n', main = paste(fancy_name, paste("filt. score=", score)), xlab = seq_x_title, ylab = seq_y_title, axes = FALSE)
 axis(1, tick = TRUE, labels = FALSE, at = seq_x_percentages)
