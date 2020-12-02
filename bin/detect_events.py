@@ -21,6 +21,7 @@ readheader.close()
 
 # Load input matrix which must be generated with the R script compute-score (w/o grid)
 matrix = np.loadtxt(sys.argv[1], skiprows = 2)
+# Flip alongside the x axis to have same orientation as output plot
 matrix = np.flip(matrix, axis=0)
 
 # Get dimension of the matrix
@@ -33,7 +34,7 @@ name = sys.argv[1].replace(".raw.txt", ".events.txt")
 events_file = open(name, "w")
 
 # Write header
-events_file.write("xStart,yStart,xEnd,yEnd,length,description\n")
+events_file.write("xStart,yStart,xEnd,yEnd,strand,approximate length,description\n")
 
 # Map {0,1} to {0,255} for cv2
 img = matrix * 255
@@ -44,6 +45,9 @@ theta = np.pi / 270  # angular resolution in radians of the Hough grid
 threshold = 10  # minimum number of votes (intersections in Hough grid cell)
 min_line_length = 5  # minimum number of pixels making up a line
 max_line_gap = 3  # maximum gap in pixels between connectable line segments
+
+# Classification of events parameters
+DIAG_SEPARATION = 10
 
 # Create a color-image from the input one
 line_image = np.uint8(np.zeros((matrix.shape[0], matrix.shape[1], 3)))
@@ -64,9 +68,29 @@ for line in lines:
     # Classify events according to their coordinates
     x1t = int((x1 / dim) * xlen)
     x2t = int((x2 / dim) * xlen)
-    y1t = int((y1 / dim) * ylen)
-    y2t = int((y2 / dim) * ylen)
-    events_file.write(str(x1t)+","+str(y1t)+","+str(x2t)+","+str(y2t)+"\n")
+    # Switch y1 by y2 (because of how Hough's transform reports the direction of the lines
+    y1t = int((y2 / dim) * ylen)
+    y2t = int((y1 / dim) * ylen)
+    # Now compare direction and classify it
+    is_inverted = False
+    is_diagonal = True
+    if(y1t > y2t): is_inverted = True
+    if(is_inverted == False and abs(x1t - y1t) > DIAG_SEPARATION): is_diagonal = False
+    if(is_inverted == True  and abs(x1t - y2t) > DIAG_SEPARATION): is_diagonal = False
+    event_type = "conserved block"
+    if(is_diagonal  and is_inverted):        event_type = "inversion"
+    if(not is_diagonal and not is_inverted): event_type = "transposition"
+    if(not is_diagonal and is_inverted):     event_type = "inverted transposition"
+    # Calculate length
+    mxlen = x2t - x1t
+    mylen = y2t - y1t
+    if(is_inverted): mylen = y1t - y2t
+    # Calculate strand
+    strand = "f"
+    if(is_inverted): strand = "r"
+
+    # Write to file
+    events_file.write(str(x1t)+","+str(y1t)+","+str(x2t)+","+str(y2t)+","+strand+","+str(max(mxlen, mylen))+","+event_type+"\n")
 
 # Close events since we are not writing to it anymore
 events_file.close()
