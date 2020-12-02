@@ -8,7 +8,7 @@ from matplotlib import pyplot as plt
 if(len(sys.argv) < 2):
   print("Error, use: ", sys.argv[0], " <raw matrix> [optional: plot]")
   exit()
-elif(len(sys.argv) == 3 and sys.argv[2] != "plot"):
+elif(len(sys.argv) == 3 and (sys.argv[2] != "plot" and sys.argv[2] != "png")):
   print("Error, unrecognized parameter :", sys.argv[2])
   exit()
 
@@ -81,4 +81,10 @@ lines_edges = cv2.addWeighted(img_color, 0.5, line_image, 1, 0)
 if(len(sys.argv) == 3 and sys.argv[2] == "plot"):
   cv2.imshow("Blend between original and detection", lines_edges)
   cv2.waitKey(0)
+
+if(len(sys.argv) == 3 and sys.argv[2] == "png"):
+  namepng = sys.argv[1].replace(".raw.txt", ".events.png")
+  cv2.imwrite(namepng, lines_edges) 
+
+
 
