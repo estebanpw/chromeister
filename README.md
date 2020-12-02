@@ -142,7 +142,7 @@ Note: in this example we used size 500 since the two sequences are quite small.
 
 Comparing two chromosomes (Homo sapiens Chr X vs Mus musculus Chr X) in a minute:
 
-run_and_plot_chromeister.sh HOMSA.Chr.X.fasta MUSMU.Chr.X.fasta 32 1000 4
+`run_and_plot_chromeister.sh HOMSA.Chr.X.fasta MUSMU.Chr.X.fasta 32 1000 4`
 
 ![HOMSA vs MUSMU](https://github.com/estebanpw/chromeister/blob/master/images/HOMSA.Chr.X.fasta-MUSMU.Chr.X.fasta.mat.filt.png)
 
@@ -151,10 +151,21 @@ run_and_plot_chromeister.sh HOMSA.Chr.X.fasta MUSMU.Chr.X.fasta 32 1000 4
 
 Comparing the full genome of the Gallus gallus against the Meleagris gallopavo with all their chromosomes including auto-generated grid:
 
-run_and_plot_chromeister.sh GALGA.Chr.complete.fasta MELGA.Chr.complete.fasta 32 1000 4 grid
+`run_and_plot_chromeister.sh GALGA.Chr.complete.fasta MELGA.Chr.complete.fasta 32 1000 4 grid`
 
 ![MULTI-FASTA](https://github.com/estebanpw/chromeister/blob/master/images/GALGA.Chr.complete.fasta-MELGA.Chr.complete.fasta.mat.filt.png)
 
+### Events detection
+
+From the `Homo sapiens Chr X vs Mus musculus Chr X` comparison you can inspect the file `HOMSA.Chr.X.fasta-MUSMU.Chr.X.fasta.mat.events.txt` which contains the classified events. You can also plot the overlap between detected events and original plot by doing:
+
+`python3 chromeister/bin/detect_events.py HOMSA.Chr.X.fasta-MUSMU.Chr.X.fasta.mat.raw.txt png`
+
+which will generate the following plot:
+
+![DETECTED-EVENTS](https://github.com/estebanpw/chromeister/blob/master/images/HOMSA.Chr.X.fasta-MUSMU.Chr.X.fasta.mat.events.png)
+
+Notice that the orange color represents detected events whereas green represents undetected blocks. The detection is based on the Houghs transform and therefore there are some parameters that can be used to change the minimum length to detect an event (e.g. if we want single points as well) or the minimum gap to join two blocks. These parameters can be changed in the `detect_events.py` file. The current configuration is mostly tailored to detect larger events and no single points.
 
 ## Help
 
