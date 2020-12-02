@@ -38,7 +38,13 @@ The 1000 value is the default size of dotplot.mat, i.e. the resolution of the ma
 
 ```CHROMEISTER -query seqX -db seqY -out dotplot.mat -dimension 2000 && Rscript compute_score.R dotplot.mat 2000```
 
-or you can also use the script that is in the bin folder (which will do the above for you):
+And if you want to run the events detection, use (make sure that your virtualenv `chromeisterenv` is in the chromeister root folder:
+
+`source ../chromeisterenv/bin/activate && python3 bin/detect_events.py dotplot.mat.raw.txt`
+
+This will generate a `dotplot.mat.events.txt` file containing the detected events and classified. If you want to get a plot of the signal with the overlapped detected events, issue the same command but add at the end the parameter `png` (separated by a space).
+
+You can also use the script that is in the bin folder (which will do all of the above for you):
 
 ```run_and_plot_chromeister.sh (input sequence A) (input sequence B) (KMER size) (DIMENSION of plot) (inexactitude level) [optional: grid]```
 
