@@ -7,10 +7,10 @@ from matplotlib import pyplot as plt
 
 if(len(sys.argv) < 2):
   print("Error, use: ", sys.argv[0], " <raw matrix> [optional: plot]")
-  exit()
+  exit(0)
 elif(len(sys.argv) == 3 and (sys.argv[2] != "plot" and sys.argv[2] != "png")):
   print("Error, unrecognized parameter :", sys.argv[2])
-  exit()
+  exit(0)
 
 
 # Get length of the fastas
