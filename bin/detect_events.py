@@ -5,9 +5,13 @@ import sys
 from matplotlib.pyplot import imshow
 from matplotlib import pyplot as plt
 
-if(len(sys.argv) != 2):
-  print("Error, use: ", sys.argv[0], " <raw matrix>")
+if(len(sys.argv) < 2):
+  print("Error, use: ", sys.argv[0], " <raw matrix> [optional: plot]")
   exit()
+elif(len(sys.argv) == 3 and sys.argv[2] != "plot"):
+  print("Error, unrecognized parameter :", sys.argv[2])
+  exit()
+
 
 # Get length of the fastas
 readheader = open(sys.argv[1], "r")
@@ -74,52 +78,7 @@ lines_edges = cv2.addWeighted(img_color, 0.5, line_image, 1, 0)
 #cv2.waitKey(0)
 
 # Plot the blending between original image and detected lines
-cv2.imshow("Blend between original and detection", lines_edges)
-cv2.waitKey(0)
-
-
-
-
-'''
-  DIAG_SEPARATION <- 10
-  # same as HSPS but adding the event
-  output <- matrix(0, nrow=length(HSPS[,1]), ncol=1+length(HSPS[1,]))
-  colnames(output) <- c("x1", "y1", "x2", "y2", "len", "event")
-  j <- 0
-  for(i in 1:(length(HSPS[,1]))){
-
-    if(sum(HSPS[i,]) > 0){
-      j <- j + 1
-      is_inverted = FALSE
-      is_diagonal = TRUE
-
-      if(HSPS[i,1] > HSPS[i,3]) is_inverted = TRUE
-      if(abs(HSPS[i,1] - HSPS[i,2]) > DIAG_SEPARATION && abs(HSPS[i,3] - HSPS[i,4]) > DIAG_SEPARATION) is_diagonal = FALSE
-
-      output[i,1] <- as.numeric(round(((HSPS[i,1] * sampling) / dim) * xlen, 0))
-      output[i,2] <- as.numeric(round(((HSPS[i,2] * sampling) / dim) * ylen, 0))
-      output[i,3] <- as.numeric(round(((HSPS[i,3] * sampling) / dim) * xlen, 0))
-      output[i,4] <- as.numeric(round(((HSPS[i,4] * sampling) / dim) * ylen, 0))
-
-
-      max_len_x <- as.numeric(as.numeric(output[i,3]) - as.numeric(output[i,1]))
-      max_len_y <- as.numeric(as.numeric(output[i,4]) - as.numeric(output[i,2]))
-      if(HSPS[i,1] > HSPS[i,3]) {
-         max_len_x <- as.numeric(as.numeric(output[i,1]) - as.numeric(output[i,3]))
-      }
-
-      output[i,5] <- max(max_len_x, max_len_y)
-
-      if(is_diagonal) output[i,6] <- "synteny block"
-      if(is_diagonal && is_inverted) output[i,6] <- "inversion"
-      if(!is_diagonal && !is_inverted) output[i,6] <- "transposition"
-      if(!is_diagonal && is_inverted) output[i,6] <-"inverted transposition"
-    }
-
-
-  }
-
-  return (output[1:j,])
-}
-''' 
+if(len(sys.argv) == 3 and sys.argv[2] == "plot"):
+  cv2.imshow("Blend between original and detection", lines_edges)
+  cv2.waitKey(0)
 
