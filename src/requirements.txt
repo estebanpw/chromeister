@@ -1,7 +1,6 @@
 scikit-build
 cycler
 kiwisolver
-matplotlib
 numpy
 opencv-python
 Pillow

@@ -1,12 +1,9 @@
 import cv2
 import numpy as np
-import matplotlib
 import sys
-from matplotlib.pyplot import imshow
-from matplotlib import pyplot as plt
 
 if(len(sys.argv) < 2):
-  print("Error, use: ", sys.argv[0], " <raw matrix> [optional: plot]")
+  print("Error, use: ", sys.argv[0], " <raw matrix> [plot|png]")
   exit(0)
 elif(len(sys.argv) == 3 and (sys.argv[2] != "plot" and sys.argv[2] != "png")):
   print("Error, unrecognized parameter :", sys.argv[2])
