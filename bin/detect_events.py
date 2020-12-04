@@ -45,7 +45,7 @@ min_line_length = 5  # minimum number of pixels making up a line
 max_line_gap = 3  # maximum gap in pixels between connectable line segments
 
 # Classification of events parameters
-DIAG_SEPARATION = 10
+DIAG_SEPARATION = int(dim * 0.015)
 
 # Create a color-image from the input one
 line_image = np.uint8(np.zeros((matrix.shape[0], matrix.shape[1], 3)))
@@ -62,7 +62,6 @@ lines = cv2.HoughLinesP(np.uint8(img), rho, theta, threshold, np.array([]), min_
 # Create lines with color for each detected line to add them later to the plot
 for line in lines:
   for x1,y1,x2,y2 in line:
-    cv2.line(line_image,(x1,y1),(x2,y2),(0,0,255), 1)
     # Classify events according to their coordinates
     x1t = int((x1 / dim) * xlen)
     x2t = int((x2 / dim) * xlen)
@@ -72,9 +71,9 @@ for line in lines:
     # Now compare direction and classify it
     is_inverted = False
     is_diagonal = True
-    if(y1t > y2t): is_inverted = True
-    if(is_inverted == False and abs(x1t - y1t) > DIAG_SEPARATION): is_diagonal = False
-    if(is_inverted == True  and abs(x1t - y2t) > DIAG_SEPARATION): is_diagonal = False
+    if(y2t > y1t): is_inverted = True
+    if(is_inverted == False and abs(x1 - y1) > DIAG_SEPARATION): is_diagonal = False # Note: diagonal separation must be calculated over the DIMxDIM grid and not over the real coordinates
+    if(is_inverted == True  and abs(x1 - y2) > DIAG_SEPARATION): is_diagonal = False
     event_type = "conserved block"
     if(is_diagonal  and is_inverted):        event_type = "inversion"
     if(not is_diagonal and not is_inverted): event_type = "transposition"
@@ -87,6 +86,23 @@ for line in lines:
     strand = "f"
     if(is_inverted): strand = "r"
 
+    # Create a line for the plot with different color
+    '''
+    if(is_inverted): cv2.line(line_image,(x1,y1),(x2,y2),(0,0,255), 1)
+    else:
+      if(is_diagonal): cv2.line(line_image,(x1,y1),(x2,y2),(255,0,0), 1)
+      else: cv2.line(line_image,(x1,y1),(x2,y2),(0,255,0), 1)
+    '''
+    # B, G, R (its inverted)
+    # conserved blocks  = Red
+    # inverted blocks   = Green
+    # transposed blocks = Blue
+    if(is_inverted): cv2.line(line_image,(x1,y1),(x2,y2),(0,255,0), 1)
+    else:
+      if(is_diagonal): cv2.line(line_image,(x1,y1),(x2,y2),(0,0,255), 1) 
+      else: cv2.line(line_image,(x1,y1),(x2,y2),(255,0,0), 1)
+    
+
     # Write to file
     events_file.write(str(x1t)+","+str(y1t)+","+str(x2t)+","+str(y2t)+","+strand+","+str(max(mxlen, mylen))+","+event_type+"\n")
 
@@ -94,7 +110,7 @@ for line in lines:
 events_file.close()
 
 # Draw the lines on the  image
-lines_edges = cv2.addWeighted(img_color, 0.5, line_image, 1, 0)
+#lines_edges = cv2.addWeighted(img_color, 0.5, line_image, 1, 0)
 
 # Plot the detected lines separately
 #cv2.imshow("Detected lines", line_image)
@@ -102,12 +118,14 @@ lines_edges = cv2.addWeighted(img_color, 0.5, line_image, 1, 0)
 
 # Plot the blending between original image and detected lines
 if(len(sys.argv) == 3 and sys.argv[2] == "plot"):
-  cv2.imshow("Blend between original and detection", lines_edges)
+  #cv2.imshow("Blend between original and detection", lines_edges)
+  cv2.imshow("Blend between original and detection", line_image)
   cv2.waitKey(0)
 
 if(len(sys.argv) == 3 and sys.argv[2] == "png"):
   namepng = sys.argv[1].replace(".raw.txt", ".events.png")
-  cv2.imwrite(namepng, lines_edges) 
+  #cv2.imwrite(namepng, lines_edges) 
+  cv2.imwrite(namepng, line_image) 
 
 
 
