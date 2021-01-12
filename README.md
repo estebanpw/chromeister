@@ -100,11 +100,11 @@ First of all, consider whether it is interesting or not to use CHROMEISTER for "
 
 5. Now run the script "guidefastas" in the bin folder. See below:
 
-	```bin/guidefastas.sh HOMSA.Chr.X.fasta MUSMU.Chr.X.fasta hits-XY-dotplot.mat.hits 1000 100 60 32 0```
+	```bin/guidefastas.sh HOMSA.Chr.X.fasta MUSMU.Chr.X.fasta hits-XY-dotplot.mat.hits 1000 100 60 32```
 	
-	The 0 at the end stands for "dont show alignments". If on the other hand, you want to get the alignments (text mode such as blast) run it with a 1 at the end, such as:
+	You can add the keyword `alignments` and/or `names` at the end of the command. The first one will extract the alignments and show them on the screen (you can redirect them with `>`). The second one will output the names of the sequences to which each fragment belongs (as opposed to numbers). If you want to show the alignments and have names of sequences as well, run it as follows:
 
-	```bin/guidefastas.sh HOMSA.Chr.X.fasta MUSMU.Chr.X.fasta hits-XY-dotplot.mat.hits 1000 100 60 32 1```
+	```bin/guidefastas.sh HOMSA.Chr.X.fasta MUSMU.Chr.X.fasta hits-XY-dotplot.mat.hits 1000 100 60 32 alignments names```
 
 Note (1): remember to include the full path to the sequences.
 Note (2): the "hits-XY-dotplot.mat.hits" file is produced by CHROMEISTER in step 1. Copy it to the folder or include full path.
