@@ -167,6 +167,29 @@ which will generate the following plot:
 
 Notice that the orange color represents detected events whereas green represents undetected blocks. The detection is based on the Houghs transform and therefore there are some parameters that can be used to change the minimum length to detect an event (e.g. if we want single points as well) or the minimum gap to join two blocks. These parameters can be changed in the `detect_events.py` file. The current configuration is mostly tailored to detect larger events and no single points.
 
+### Fine-grained run
+
+Comparing some mycoplasma hyopneumoniae genomes (not all has to be mammalian or plant chromosomes!).
+
+![SMALL-BACTERIA](https://github.com/estebanpw/chromeister/blob/master/images/NC_014.fasta-NC_017.fasta.mat.filt.png)
+
+This is afterwards ran with the `inmemory_guided_chrom` branch of GECKO (see [here](https://github.com/estebanpw/gecko/tree/inmemory_guided_chrom)) using the following command line (supply the CHROMEISTER hits file):
+
+`gecko/bin/guidefastas.sh NC_014.fasta NC_017.fasta hits-XY-NC_014.fasta-NC_017.fasta.mat.hits 1000 50 60 32 names`
+
+and we get a csv `NC_014-NC_017.csv` which includes:
+
+```
+Frag,1218913,3918445,1221077,3916281,r,0,2165,8644,2163,99.82,1.00,_gi|304372805|ref|NC_014448.1|,_gi|385858114|ref|NC_017519.1|
+[...]
+Frag,6618091,5316746,6620403,5319058,f,0,2313,8524,2222,92.13,0.96,_gi|321309518|ref|NC_014970.1|,_gi|385858893|ref|NC_017520.1|
+[...]
+Frag,3062371,6264699,3064642,6266970,f,0,2272,9080,2271,99.91,1.00,_gi|313664890|ref|NC_014751.1|,_gi|392388518|ref|NC_017521.1|
+```
+Where the last two columns indicate the origin of the fragment. For instance, in this case, the first fragment belongs to `gi|304372805|ref|NC_014448.1|` and `gi|385858114|ref|NC_017519.1|` which are sequences `2` and `5` in the `x` and `y` axis in the previous plot, respectively.
+
+Remember that your `csv` file can be uploaded and interactively inspected [here](https://pistacho.ac.uma.es/)!
+
 ## Help
 
 1. Hanging output and program does not finish
