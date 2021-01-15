@@ -162,7 +162,7 @@ int main(int argc, char ** av){
                     if(word_size < custom_kmer) ++word_size;
                     ++current_len;
                     if(current_len % a_hundreth == 0){ 
-                        fprintf(stdout, "\r%"PRIu64"%%...", 1+100*current_len/aprox_len_query); 
+                        fprintf(stdout, "\r%"PRIu64"%%...", 100*current_len/aprox_len_query); 
                         //printf("%"PRIu64"%%..wasted: (%e) (%e)", 1+100*pos_in_query/aprox_len_query, (double)(wasted_cycles_forward)/CLOCKS_PER_SEC, (double)(wasted_cycles_reverse)/CLOCKS_PER_SEC); 
                         fflush(stdout);
                     }
@@ -311,7 +311,7 @@ int main(int argc, char ** av){
                     
                     ++current_len;
                     if(current_len % a_hundreth == 0){ 
-                        fprintf(stdout, "\r%"PRIu64"%%...", 1+100*current_len/aprox_len_query); 
+                        fprintf(stdout, "\r%"PRIu64"%%...", 100*current_len/aprox_len_query); 
                         fflush(stdout);
                     }
                     curr_kmer[word_size] = (unsigned char) c;
@@ -444,7 +444,7 @@ int main(int argc, char ** av){
 
     fprintf(stdout, "Scanning hits table.\n");
 
-    a_hundreth = MAX(1, TOTAL_ENTRIES/100);
+    a_hundreth = MAX(1, (TOTAL_ENTRIES/100)/5); // A fifth right now
     uint64_t t_computed = 0;
     uint64_t w0,w1,w2,w3,w4,w5,w6,w7,w8,w9,w10,w11;
     for(w0=0;w0<4;w0++){
@@ -461,7 +461,7 @@ int main(int argc, char ** av){
                                                 for(w11=0;w11<4;w11++){
 
                                                     if(t_computed % a_hundreth == 0){ 
-                                                        fprintf(stdout, "\r%"PRIu64"%%...", 1+100*t_computed/TOTAL_ENTRIES); 
+                                                        fprintf(stdout, "\r%"PRIu64"%%...", 100*t_computed/TOTAL_ENTRIES); 
                                                         fflush(stdout);
                                                     }
                                                     ++t_computed;
