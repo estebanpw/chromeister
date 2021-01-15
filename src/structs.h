@@ -15,6 +15,7 @@
 
 #define MAXLID 200
 #define MAXSTR 2000
+#define MAXPATH 4096
 #define ALIGN_LEN 60 //For NW alignment
 #define MAX_READ_SIZE 20000 //Maximum length of read to have a portion of the table allocated
 #define MAX_WINDOW_SIZE 500 //Maximum window length to explore NW table

@@ -27,7 +27,7 @@ USAGE       Usage is described by calling ./CHROMEISTER --help
 uint64_t custom_kmer = 32; // Defined as external in structs.h
 uint64_t diffuse_z = 4; // Defined as external in structs.h
 
-char database_name[MAXSTR], query_name[MAXSTR]; 
+char database_name[MAXSTR], query_name[MAXSTR], newname[MAXPATH];
 
 uint64_t get_seq_len(FILE * f, FILE * labels, int value);
 
@@ -627,12 +627,12 @@ void init_args(int argc, char ** av, FILE ** query, FILE ** database, FILE ** ou
         }
         else if(strcmp(av[pNum], "-out") == 0){
             *out_database = fopen(av[pNum+1], "wt");
-            if(out_database==NULL) terror("Could not open output database file");
-            char newname[strlen(av[pNum+1]) + 4];
+            if(*out_database == NULL) terror("Could not open output database file");
+            //char newname[strlen(av[pNum+1]) + 4];
             strcpy(newname, av[pNum+1]);
             strcat(newname, ".csv");
             *out_labels = fopen(newname, "wt");
-            if(out_labels==NULL) terror("Could not open output labels file");
+            if(*out_labels == NULL) terror("Could not open output labels file");
         }
         else if(strcmp(av[pNum], "-kmer") == 0){
             *custom_kmer = (uint64_t) atoi(av[pNum+1]);
