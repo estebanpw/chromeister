@@ -594,6 +594,9 @@ int main(int argc, char ** av){
     if(out_database != NULL) fclose(out_database);
 	fclose(query);
 	fclose(out_labels);
+	free(temp_seq_buffer);
+	free(seq_vector_query);
+	free(ctidx);
     
     return 0;
 }
