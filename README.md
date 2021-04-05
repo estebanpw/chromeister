@@ -102,7 +102,7 @@ First of all, consider whether it is interesting or not to use CHROMEISTER for "
 
 	```bin/guidefastas.sh HOMSA.Chr.X.fasta MUSMU.Chr.X.fasta hits-XY-dotplot.mat.hits 1000 100 60 32```
 	
-	You can add the keyword `alignments` and/or `names` at the end of the command. The first one will extract the alignments and show them on the screen (you can redirect them with `>`). The second one will output the names of the sequences to which each fragment belongs (as opposed to numbers). If you want to show the alignments and have names of sequences as well, run it as follows:
+	You can add the keyword `alignments` and/or `names` at the end of the command. The first one will extract the alignments and write them to a file with extension `.alignments` in the `all-results` folder. The second one will output the names of the sequences to which each fragment belongs (as opposed to numbers). If you want to show the alignments and have names of sequences as well, run it as follows:
 
 	```bin/guidefastas.sh HOMSA.Chr.X.fasta MUSMU.Chr.X.fasta hits-XY-dotplot.mat.hits 1000 100 60 32 alignments names```
 
@@ -112,10 +112,22 @@ Note (3): the parameters following in the command "1000 200 75 32" are namely (1
 
 This step can take several minutes, e.g. using 1 CPU this execution took around 9-10 minutes.
 
-6. A CSV file containing the alignments coordinates can be found in the folder all-results/master.csv. You can download it here if you wish to do so: http://mango.ac.uma.es/compartir/HOMSA_X-MUSMU_X.csv
+6. A CSV file containing the alignments coordinates can be found in the folder `all-results`. You can download it here if you wish to do so: http://mango.ac.uma.es/compartir/HOMSA_X-MUSMU_X.csv
 
 7. If you also wish to visually contrast annotations to the alignments, you can use our genomic browser at https://pistacho.ac.uma.es/. To do so just follow the user guide available at https://pistacho.ac.uma.es/static/data/GeckoMGV-UserGuide.pdf
 
+8. An example alignment file is shown below:
+```
+AAAGAAAGAAAGAAAGAAAGAAAGAAAGAAAGAAAAAGAAAGAAAGAAAAGAAAGAAAGAAAGAAAGAAAGAAAGAAAGAAAGAAAGAAAGAGAAAGAAAA
+||||||||||||||||||||||||||||||||||| | |||  ||  || ||| ||| |||||||||||||||||||||||||||||||||| | | | ||
+AAAGAAAGAAAGAAAGAAAGAAAGAAAGAAAGAAAGAAAAAAGAAAGAAGGAAGGAAGGAAAGAAAGAAAGAAAGAAAGAAAGAAAGAAAGAAAGAAAGAA
+@ FORWARD STRAND x1: 10501385 y1: 169863509 x2: 10501485 y2: 169863609 Identity: 88/101 (87.1287%)
+TTTTCCCATTGATTAATATTTTTCCTGTTGAGCAGATGAGAGAAAGCCAAAAAAAGCACAGCTGGGCCATTTCCCCTCACTGGGAACGTCATTTCCAGGCACTTTGTGCTTACTTGAT
+|||||||||||||| ||||||||| | |||| | |||||||||||||||||||||||||||||||||||||||| |||||||  |||||||||||||| |||| |||||| |||||||
+TTTTCCCATTGATTGATATTTTTCTTATTGAACTGATGAGAGAAAGCCAAAAAAAGCACAGCTGGGCCATTTCCTCTCACTGTAAACGTCATTTCCAGTCACTCTGTGCTCACTTGAT
+@ REVERSE STRAND x1: 10451224 y1: 169981322 x2: 10451341 y2: 169981205 Identity: 107/118 (90.678%)
+```
+Note that each fragment begins with an alignment, and has a corresponding `@` line where information is included such as strand of the alignments, coordinates, identity, etc.
 
 ## Parameters
 
