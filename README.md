@@ -83,40 +83,43 @@ Notice that you can easily run this in parallel by just re-issuing the command (
 
 First of all, consider whether it is interesting or not to use CHROMEISTER for "fine-grained" results. CHROMEISTER is recommended for VERY coarse-grained and full-genome comparisons in order to quickly assess similarity between genomes. Thus it does NOT produce alignments. However, if you find yourself in a situation where you want to convert the signal of CHROMEISTER into alignments (e.g. two large genomes), this can be done. The following tutorial shows how to do it, with human chromosome X and mouse chromosome X as example:
 
-1. First, run CHROMEISTER like this:
+ 1. First, run CHROMEISTER like this:
 
 	```./CHROMEISTER -query HOMSA.Chr.X.fasta -db MUSMU.Chr.X.fasta -out dotplot.mat -dimension 1000 && Rscript compute_score.R dotplot.mat 1000```
 
-2. Check the "dotplot.mat.filt.png" corresponding to the dotplot between both chromosomes to see if there is any similarity. If so, proceed to next step.
+ 2. Check the "dotplot.mat.filt.png" corresponding to the dotplot between both chromosomes to see if there is any similarity. If so, proceed to next step.
 
-3. Clone the following repository: https://github.com/estebanpw/gecko
+ 3. Clone the following repository: https://github.com/estebanpw/gecko
 
 	```git clone https://github.com/estebanpw/gecko```
 
-4. Switch branch to the one named "inmemory_guided_chrom" and compile it. To do so, issue the following command:
+ 4. Switch branch to the one named "inmemory_guided_chrom" and compile it. To do so, issue the following command:
 	
 	```cd gecko && git checkout inmemory_guided_chrom && make all -C src```
 	
 
-5. Now run the script "guidefastas" in the bin folder. See below:
-
-	```bin/guidefastas.sh HOMSA.Chr.X.fasta MUSMU.Chr.X.fasta hits-XY-dotplot.mat.hits 1000 100 60 32```
+ 5. Now run the script "guidefastas" in the bin folder. See below:
+ 
+ 	```bin/guidefastas.sh HOMSA.Chr.X.fasta MUSMU.Chr.X.fasta hits-XY-dotplot.mat.hits 1000 100 60 32```
+ 	
+	You can add the following arguments to the execution:
 	
-	You can add the keyword `alignments` and/or `names` at the end of the command. The first one will extract the alignments and write them to a file with extension `.alignments` in the `all-results` folder. The second one will output the names of the sequences to which each fragment belongs (as opposed to numbers). If you want to show the alignments and have names of sequences as well, run it as follows:
+  * `--alignments` : This one will extract the alignments and write them to a file with extension `.alignments` in the `all-results` folder.
+  * `--names`      : This one will output the names of the sequences to which each fragment belongs instead of their sequence number (e.g. if comparing chromosomes 1 and 2 of Homo sapiens vs Mus musculus then `0,1` will now be `Homo s. chr1, Mus m. chr2`)
+  * `--sort`       : This will sort output frags in the `csv` file according first to the comparison they belong to and secondly by coordinates. 
+  * `--local`      : This one will convert the coordinates in the `csv` file (which are global in respect to the file) to local in respect to each sequence in the fasta file. Useful for chromosome comparison when we do not want all coordinates to accumulate.
 
-	```bin/guidefastas.sh HOMSA.Chr.X.fasta MUSMU.Chr.X.fasta hits-XY-dotplot.mat.hits 1000 100 60 32 alignments names```
+	Note (1): remember to include the full path to the sequences.
+	Note (2): the "hits-XY-dotplot.mat.hits" file is produced by CHROMEISTER in step 1. Copy it to the folder or include full path.
+	Note (3): the parameters following in the command "1000 200 75 32" are namely (1) size of dotplot, (2) minimum length that an alignment must have to be reported, (3) minimum similarity from 0-100, (4) k-mer seed size (use 32 for chromomsome-like sequences).
 
-Note (1): remember to include the full path to the sequences.
-Note (2): the "hits-XY-dotplot.mat.hits" file is produced by CHROMEISTER in step 1. Copy it to the folder or include full path.
-Note (3): the parameters following in the command "1000 200 75 32" are namely (1) size of dotplot, (2) minimum length that an alignment must have to be reported, (3) minimum similarity from 0-100, (4) k-mer seed size (use 32 for chromomsome-like sequences).
+	This step can take several minutes, e.g. using 1 CPU this execution took around 9-10 minutes.
 
-This step can take several minutes, e.g. using 1 CPU this execution took around 9-10 minutes.
+ 6. A CSV file containing the alignments coordinates can be found in the folder `all-results`. You can download it here if you wish to do so: http://mango.ac.uma.es/compartir/HOMSA_X-MUSMU_X.csv
 
-6. A CSV file containing the alignments coordinates can be found in the folder `all-results`. You can download it here if you wish to do so: http://mango.ac.uma.es/compartir/HOMSA_X-MUSMU_X.csv
+ 7. If you also wish to visually contrast annotations to the alignments, you can use our genomic browser at https://pistacho.ac.uma.es/. To do so just follow the user guide available at https://pistacho.ac.uma.es/static/data/GeckoMGV-UserGuide.pdf
 
-7. If you also wish to visually contrast annotations to the alignments, you can use our genomic browser at https://pistacho.ac.uma.es/. To do so just follow the user guide available at https://pistacho.ac.uma.es/static/data/GeckoMGV-UserGuide.pdf
-
-8. An example alignment file is shown below:
+ 8. An example alignment file is shown below:
 ```
 AAAGAAAGAAAGAAAGAAAGAAAGAAAGAAAGAAAAAGAAAGAAAGAAAAGAAAGAAAGAAAGAAAGAAAGAAAGAAAGAAAGAAAGAAAGAGAAAGAAAA
 ||||||||||||||||||||||||||||||||||| | |||  ||  || ||| ||| |||||||||||||||||||||||||||||||||| | | | ||
