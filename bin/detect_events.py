@@ -60,51 +60,51 @@ img_color[(img > 0)] = (0,255,0)
 lines = cv2.HoughLinesP(np.uint8(img), rho, theta, threshold, np.array([]), min_line_length, max_line_gap)
 
 # Create lines with color for each detected line to add them later to the plot
-for line in lines:
-  for x1,y1,x2,y2 in line:
-    # Classify events according to their coordinates
-    x1t = int((x1 / dim) * xlen)
-    x2t = int((x2 / dim) * xlen)
-    # Switch y1 by y2 (because of how Hough's transform reports the direction of the lines
-    y1t = int((y2 / dim) * ylen)
-    y2t = int((y1 / dim) * ylen)
-    # Now compare direction and classify it
-    is_inverted = False
-    is_diagonal = True
-    if(y2t > y1t): is_inverted = True
-    if(is_inverted == False and abs(x1 - y1) > DIAG_SEPARATION): is_diagonal = False # Note: diagonal separation must be calculated over the DIMxDIM grid and not over the real coordinates
-    if(is_inverted == True  and abs(x1 - y2) > DIAG_SEPARATION): is_diagonal = False
-    event_type = "conserved block"
-    if(is_diagonal  and is_inverted):        event_type = "inversion"
-    if(not is_diagonal and not is_inverted): event_type = "transposition"
-    if(not is_diagonal and is_inverted):     event_type = "inverted transposition"
-    # Calculate length
-    mxlen = x2t - x1t
-    mylen = y2t - y1t
-    if(is_inverted): mylen = y1t - y2t
-    # Calculate strand
-    strand = "f"
-    if(is_inverted): strand = "r"
+if(lines is not None):
+  for line in lines:
+    for x1,y1,x2,y2 in line:
+      # Classify events according to their coordinates
+      x1t = int((x1 / dim) * xlen)
+      x2t = int((x2 / dim) * xlen)
+      # Switch y1 by y2 (because of how Hough's transform reports the direction of the lines
+      y1t = int((y2 / dim) * ylen)
+      y2t = int((y1 / dim) * ylen)
+      # Now compare direction and classify it
+      is_inverted = False
+      is_diagonal = True
+      if(y2t > y1t): is_inverted = True
+      if(is_inverted == False and abs(x1 - y1) > DIAG_SEPARATION): is_diagonal = False # Note: diagonal separation must be calculated over the DIMxDIM grid and not over the real coordinates
+      if(is_inverted == True  and abs(x1 - y2) > DIAG_SEPARATION): is_diagonal = False
+      event_type = "conserved block"
+      if(is_diagonal  and is_inverted):        event_type = "inversion"
+      if(not is_diagonal and not is_inverted): event_type = "transposition"
+      if(not is_diagonal and is_inverted):     event_type = "inverted transposition"
+      # Calculate length
+      mxlen = x2t - x1t
+      mylen = y2t - y1t
+      if(is_inverted): mylen = y1t - y2t
+      # Calculate strand
+      strand = "f"
+      if(is_inverted): strand = "r"
 
-    # Create a line for the plot with different color
-    '''
-    if(is_inverted): cv2.line(line_image,(x1,y1),(x2,y2),(0,0,255), 1)
-    else:
-      if(is_diagonal): cv2.line(line_image,(x1,y1),(x2,y2),(255,0,0), 1)
-      else: cv2.line(line_image,(x1,y1),(x2,y2),(0,255,0), 1)
-    '''
-    # B, G, R (its inverted)
-    # conserved blocks  = Red
-    # inverted blocks   = Green
-    # transposed blocks = Blue
-    if(is_inverted): cv2.line(line_image,(x1,y1),(x2,y2),(0,255,0), 1)
-    else:
-      if(is_diagonal): cv2.line(line_image,(x1,y1),(x2,y2),(0,0,255), 1) 
-      else: cv2.line(line_image,(x1,y1),(x2,y2),(255,0,0), 1)
-    
+      # Create a line for the plot with different color
+      '''
+      if(is_inverted): cv2.line(line_image,(x1,y1),(x2,y2),(0,0,255), 1)
+      else:
+        if(is_diagonal): cv2.line(line_image,(x1,y1),(x2,y2),(255,0,0), 1)
+        else: cv2.line(line_image,(x1,y1),(x2,y2),(0,255,0), 1)
+      '''
+      # B, G, R (its inverted)
+      # conserved blocks  = Red
+      # inverted blocks   = Green
+      # transposed blocks = Blue
+      if(is_inverted): cv2.line(line_image,(x1,y1),(x2,y2),(0,255,0), 1)
+      else:
+        if(is_diagonal): cv2.line(line_image,(x1,y1),(x2,y2),(0,0,255), 1) 
+        else: cv2.line(line_image,(x1,y1),(x2,y2),(255,0,0), 1)
 
-    # Write to file
-    events_file.write(str(x1t)+","+str(y1t)+","+str(x2t)+","+str(y2t)+","+strand+","+str(max(mxlen, mylen))+","+event_type+"\n")
+      # Write to file
+      events_file.write(str(x1t)+","+str(y1t)+","+str(x2t)+","+str(y2t)+","+strand+","+str(max(mxlen, mylen))+","+event_type+"\n")
 
 # Close events since we are not writing to it anymore
 events_file.close()

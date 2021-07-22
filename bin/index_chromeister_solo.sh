@@ -26,7 +26,7 @@ if [ $# != 4 ]; then
 fi
 
 
-rm $OUT
+rm $OUT &> /dev/null
 
 for elem in $(ls -d $DIR/*.$EXT | awk -F "/" '{print $NF}' | awk -F ".$EXT" '{print $1}')
 do
@@ -40,8 +40,8 @@ do
 	sed -i "s/\[1\]//g" $DIR/$scorepath
 
 	score=$( head -1  $DIR/$scorepath)
-	len1=$( head -1 $DIR/$elem.mat.events.txt | awk -F="," '{print $1}')
-	len2=$( head -1 $DIR/$elem.mat.events.txt | awk -F="," '{print $2}')
+	len1=$( head -1 $DIR/$elem.mat | awk -F="," '{print $1}')
+	len2=$( head -2 $DIR/$elem.mat | tail -n 1 | awk -F="," '{print $1}')
 
 	
 
@@ -70,7 +70,7 @@ do
 
 
 
-	echo "$(basename ${splits[0]} $EXTGENERAL),$(basename ${splits[1]} ${EXTGENERAL}),$ID1,$ID2,$elem.$EXT.filt.png,$numX,$numY,$score,$len1 $len2" >> $OUT
+	echo "$(basename ${splits[0]} $EXTGENERAL),$(basename ${splits[1]} ${EXTGENERAL}),$ID1,$ID2,$elem.$EXT.filt.png,$numX,$numY,$score,$len1,$len2" >> $OUT
 
 done
 
