@@ -3,7 +3,7 @@ cycler
 kiwisolver
 numpy
 opencv-python
-Pillow>=9.0.0
+Pillow
 pyparsing
 python-dateutil
 six
